@@ -1,0 +1,69 @@
+---
+title: Roofline & Profiling
+description: Predict where a kernel binds before you profile, then verify with NCU. Tensor Core shapes, the metric tree, and Inductor fusion.
+last_reviewed: 2026-05-10
+---
+# Roofline & Profiling
+
+The bedrock-meets-tooling layer. Every kernel optimization starts with the same two questions: **which resource is this kernel bound by?** and **how do I verify that with the profiler?** This module makes both answers reflexive — the roofline is the predictive lens, NCU is the verification surface, and Tensor Core shape constraints are the silent floor underneath both.
+
+The discipline is **predict, then verify**. Given a (shape, dtype, hardware) triple, you should be able to predict the regime — HBM-bandwidth-bound, compute-bound on Tensor Cores, SMEM-thrash, or kernel-launch-overhead — and a rough % of peak, before you ever open a profiler. Then NCU confirms the prediction, and every gap is a learnable lesson. Most engineers skip the prediction step; that's the gap between intermediate and senior inference roles.
+
+<ModuleProgress
+  lessons={[
+    { slug: '/ml-execution/roofline-profiling/roofline-prediction', title: 'Roofline as a Predictive Tool', estMin: 16 },
+    { slug: '/ml-execution/roofline-profiling/tensor-core-shapes', title: 'Tensor Core SHAPE Constraints', estMin: 14 },
+  ]}
+/>
+
+<Capstone
+  title="The fused kernel + roofline writeup"
+  pitch="Author a fused RMSNorm+Matmul Triton kernel, benchmark vs torch.compile, capture NCU traces, and write a comprehensive roofline analysis where you predict every regime before profiling."
+  what="A public repo (fused-rmsnorm-mm) containing the kernel, a 3-axis bench harness (batch × hidden × dtype), saved NCU reports for three representative shapes, and a ROOFLINE.md that predicts the bound for each shape from arithmetic intensity, then verifies with NCU and explains every gap. The discipline of the sealed predictions file (committed before opening NCU) is the whole point — that is what an inference-team interview probes."
+  sota={['Triton 3.x autotune', 'CUDA 12+', 'Nsight Compute (NCU)', 'torch.compile (Inductor)', 'Hopper H100 (SM90)', 'Horace He brrrr methodology']}
+  device="colab"
+  time="Five focused weeks (~40 h)"
+  level="advanced"
+  steps={[
+    {
+      title: 'Memorize the H100 numbers',
+      goal: 'Write a one-page reference: peak fp16/bf16 TC TFLOPs/s, HBM3 bandwidth, L2 size, SMEM/SM, registers/SM, wgmma m64nNk16 shape, ridge-point AI ≈ 295 fp16 FLOPs/byte.',
+      checkpoint: 'You can write the bandwidth pyramid (HBM3 3.35 TB/s → L2 50 MB → SMEM 228 KB/SM → registers 65k/SM) from memory.',
+      trap: 'Reading the marketing peak (1979 fp16 TFLOPs) instead of the sustained TC peak (~989 fp16 TFLOPs/s on SXM). Marketing doubles for sparsity.',
+      est: '90 min',
+    },
+    {
+      title: 'Write the standalone Triton matmul that hits Tensor Cores',
+      goal: 'Tile sizes constrained to TC-multiples (BLOCK_M, BLOCK_N ∈ {64, 128, 256}, BLOCK_K ∈ {32, 64}), fp16 inputs, fp32 accumulator. Verify TC utilization with NCU before fusing.',
+      checkpoint: '≥80% of torch.matmul TFLOPs/s at 4096×4096×4096 fp16; NCU shows tensor-core utilization >50%.',
+      trap: 'BLOCK_K=16 silently misses wgmma m64nNk16 — Triton autotune may pick it but NCU will show TC% near zero. Always verify.',
+      est: '4 h',
+    },
+    {
+      title: 'Fuse RMSNorm into the matmul epilogue',
+      goal: 'One kernel: load tile, apply per-row RMSNorm in registers/SMEM, then matmul against weight tile. Saves one global-memory roundtrip on the activation.',
+      checkpoint: 'Fused output matches torch.matmul(rmsnorm(x), W) atol 1e-3 on (B=32, H=4096, O=4096).',
+      trap: 'fp16 reduction for RMSNorm loses precision at large hidden — accumulate the mean-of-squares in fp32.',
+      est: '5 h',
+    },
+    {
+      title: 'Bench across 3 axes, predict every shape, verify with NCU',
+      goal: 'Sweep batch ∈ {1, 8, 32, 128} × hidden ∈ {2048, 4096, 8192} × dtype ∈ {fp16, bf16}. For each cell, predict regime + % of peak BEFORE opening NCU. Commit predictions.md, then verify.',
+      checkpoint: 'docs/predictions.md is timestamped before docs/verification.md. Every prediction has a measured counterpart and a 1-sentence gap explanation.',
+      trap: 'Forgetting cuda.synchronize() before stopping the timer — you measure launch latency instead of execution.',
+      est: '7 h',
+    },
+    {
+      title: 'Write ROOFLINE.md — the resume artifact',
+      goal: '1500–2500 words. Sections: H100 hardware roofline, op-level arithmetic intensity, per-shape predictions table, NCU verification, three lessons, reproduction commands.',
+      checkpoint: 'A stranger can clone, run `make bench`, and reproduce one cell of the bench table within 10 minutes on H100.',
+      est: '4 h',
+    },
+  ]}
+  outcomes={[
+    'A fused RMSNorm+Matmul Triton kernel that hits Tensor Cores',
+    'A reproducible 3-axis bench harness vs torch.compile with saved NCU reports',
+    'A ROOFLINE.md cover-letter artifact where every prediction has a measured counterpart',
+    'The discipline of predicting kernel regime BEFORE profiling — the senior-inference signal',
+  ]}
+/>

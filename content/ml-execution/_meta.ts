@@ -3,4 +3,5 @@ export default {
   'tensors-in-memory': 'Tensors in Memory',
   'gpu-fundamentals': 'GPU Fundamentals',
   quantization: 'Quantization',
+  'roofline-profiling': 'Roofline & Profiling',
 }

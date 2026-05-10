@@ -504,6 +504,20 @@
     "tldr": "- LLM activations have **outliers** — a few channels with magnitudes 10–100× larger than typical. They wreck quantization (the scale gets pulled too wide; non-outlier values lose precision).\n- **Rotation quantization** applies an orthogonal matrix `R` to the activations *and* a compensating `R⁻¹` to the next layer's weights. The math is unchanged, but the rotated activations have **no outlier channels** — their magnitudes are spread evenly.\n- Rotated activations quantize cleanly to INT4 / FP4 / FP8 *without* outlier-protection tricks like AWQ. **QuaRot** (Ashkboos et al., 2024) was the first published version; **SpinQuant** (Liu et al., 2024) learns the rotation; both deliver near-FP16 accuracy at INT4.\n- The rotation cost: one extra small matmul per attention block at runtime — typically under 2% throughput hit. The accuracy gain at low bit-widths can be 2–5 points on MMLU.\n- **Where it matters most: aggressive 4-bit and below.** For FP8, outliers usually don't break things. For 4-bit (MXFP4, INT4) and below, rotation is increasingly default — DeepSeek-V3 uses a related trick during training; production INT4 stacks like vLLM v1 ship rotation as an option."
   },
   {
+    "slug": "/ml-execution/roofline-profiling/roofline-prediction",
+    "track": "ml-execution",
+    "module": "ml-execution/roofline-profiling",
+    "title": "Roofline as a Predictive Tool",
+    "tldr": "- The roofline is a **two-line graph**: peak compute (FLOPs/s) and peak memory bandwidth (bytes/s). A kernel's *arithmetic intensity* (AI = flops / bytes moved) places it on the x-axis. Where the kernel meets the lower of the two ceilings is its theoretical max.\n- The **ridge point** is where the two lines cross: AI = peak_FLOPs / peak_bandwidth. On H100 fp16: AI ≈ **295 FLOPs/byte**. Below it, you're HBM-bound. Above it, you're compute-bound.\n- A useful roofline has a **third regime**: kernel-launch + dispatcher overhead. Below ~8 µs, the host-side cost dominates and the GPU is starved. Common in batch-1 decode and tiny attention.\n- The discipline: **predict regime + % of peak BEFORE profiling**. Then NCU verifies. Where prediction is wrong, you learn something specific (tile size, occupancy floor, SMEM thrash, scheduler stall).\n- Production kernels land at **65–85% of the predicted ceiling**, not 100%. Anything below 50% means a bug; anything claiming above 90% should be re-measured."
+  },
+  {
+    "slug": "/ml-execution/roofline-profiling/tensor-core-shapes",
+    "track": "ml-execution",
+    "module": "ml-execution/roofline-profiling",
+    "title": "Tensor Core SHAPE Constraints",
+    "tldr": "- Hopper Tensor Cores execute the **wgmma** instruction family. The shape is **m64 × N × k16** for fp16/bf16 (where N ∈ {8, 16, 24, ..., 256}) and **m64 × N × k32** for fp8. Outside these shapes, you are not on Tensor Cores — you are on CUDA cores at ~1/16th the throughput.\n- A Triton kernel only hits Tensor Cores when its **per-warpgroup tile** is a multiple of (64, 16, K) for fp16 or (64, 32, K) for fp8. Block sizes like `(BLOCK_M=32, BLOCK_K=16)` silently miss.\n- The verification metric is **`sm__pipe_tensor_op_hmma_cycles_active.avg.pct_of_peak_sustained_active`** in NCU. **Anything below 30% means the kernel is mostly running on CUDA cores.** Production kernels target 60–85%.\n- Blackwell adds **fp4 (m64 × N × k64)** and **2:4 sparse fp8 (m64 × N × k64)**. The shape philosophy carries forward; the K dimension expands as precision shrinks.\n- The Capstone 1 fused RMSNorm+Matmul is correct by construction *only* if its tile shape hits wgmma. Verifying TC% with NCU before fusing is the discipline; the fused kernel inherits whatever the standalone matmul did wrong."
+  },
+  {
     "slug": "/ml-execution/tensors-in-memory/contiguous-vs-non",
     "track": "ml-execution",
     "module": "ml-execution/tensors-in-memory",

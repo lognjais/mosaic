@@ -117,6 +117,12 @@ export const TILES: Tile[] = [
   { slug: '/ml-execution/quantization/mxfp4-nvfp4',          fallback: '/ml-execution/quantization', title: 'MXFP4 / NVFP4',         summary: 'Block-floating-point microscaling on Blackwell.',             track: 'ml-execution', moduleName: 'Quantization', q: -2, r: -2, illustration: 'mxfp4-nvfp4', available: true },
   { slug: '/ml-execution/quantization/rotation-quant',       fallback: '/ml-execution/quantization', title: 'Rotation Quantization', summary: 'QuaRot, SpinQuant — outlier suppression via Hadamard rotation.', track: 'ml-execution', moduleName: 'Quantization', q: -1, r: -2, illustration: 'rotation-quant', available: true },
 
+  // Module: Roofline & Profiling
+  { slug: '/ml-execution/roofline-profiling/roofline-prediction',    fallback: '/ml-execution/roofline-profiling', title: 'Roofline as a Tool',     summary: 'Predict regime + % of peak before profiling. Verify with NCU.',          track: 'ml-execution', moduleName: 'Roofline & Profiling', q: -4, r: -1, illustration: 'placeholder', available: true },
+  { slug: '/ml-execution/roofline-profiling/tensor-core-shapes',     fallback: '/ml-execution/roofline-profiling', title: 'Tensor Core Shapes',     summary: 'Hopper wgmma m64 × N × k16/k32 — the silent floor under every fast matmul.', track: 'ml-execution', moduleName: 'Roofline & Profiling', q: -3, r: -1, illustration: 'placeholder', available: true },
+  { slug: '/ml-execution/roofline-profiling/ncu-metrics',            fallback: '/ml-execution/roofline-profiling', title: 'NCU Metric Tree',        summary: 'The 8 Nsight Compute metrics that tell you which ceiling you hit.',       track: 'ml-execution', moduleName: 'Roofline & Profiling', q: -2, r: -1, illustration: 'placeholder', available: false },
+  { slug: '/ml-execution/roofline-profiling/torch-compile-fusion',   fallback: '/ml-execution/roofline-profiling', title: 'Inductor Fusion',        summary: 'When torch.compile fuses, when it does not, and how to read the codegen.',track: 'ml-execution', moduleName: 'Roofline & Profiling', q: -1, r: -1, illustration: 'placeholder', available: false },
+
   // ════════════════════ TRAINING & RLHF (plum) ════════════════════
   // Module: Optimization
   { slug: '/training/optimization/backprop',          fallback: '/training/optimization', title: 'Backprop as a Graph',  summary: 'Forward saves activations; backward consumes them. Memory binds.',          track: 'training', moduleName: 'Optimization', q: 1, r: -4, illustration: 'backprop', available: true },
