@@ -631,7 +631,7 @@ body {
   letter-spacing: -0.045em;
   line-height: 0.95;
   margin: 0;
-  background: linear-gradient(135deg, #f5f3ee 0%, #f2cc8f 45%, #e07a5f 80%, #b86fa5 100%);
+  background: linear-gradient(135deg, #60a5fa 0%, #818cf8 35%, #a855f7 70%, #ec4899 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

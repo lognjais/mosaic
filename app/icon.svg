@@ -1,9 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mosaic">
+  <defs>
+    <linearGradient id="m-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="35%" stop-color="#818cf8"/>
+      <stop offset="70%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+  </defs>
   <rect width="64" height="64" rx="12" fill="#0a0a0f"/>
-  <!-- Outer hexagonal tile in brand gold -->
   <polygon points="32,8 53,20 53,44 32,56 11,44 11,20"
-           fill="none" stroke="#f2cc8f" stroke-width="2.5" stroke-linejoin="round"/>
-  <!-- Inner hex filled in brand terracotta — recognizable at 16px -->
+           fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linejoin="round"/>
   <polygon points="32,20 42,26 42,38 32,44 22,38 22,26"
-           fill="#e07a5f"/>
+           fill="url(#m-grad)"/>
 </svg>
