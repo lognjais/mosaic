@@ -203,6 +203,7 @@ export const TILES: Tile[] = [
   { slug: '/applied/inference-internals/vllm-internals',   fallback: '/applied/inference-internals', title: 'vLLM Internals',       summary: 'Scheduler, PagedAttention, V1 engine, and where contributors land PRs.',     track: 'applied', moduleName: 'Inference Internals', q: 1, r: 5, illustration: 'placeholder', available: true },
   { slug: '/applied/inference-internals/sglang-internals',         fallback: '/applied/inference-internals', title: 'SGLang Internals',          summary: 'RadixAttention, structured generation, the frontend DSL — and when SGLang wins.', track: 'applied', moduleName: 'Inference Internals', q: 2, r: 5, illustration: 'placeholder', available: true },
   { slug: '/applied/inference-internals/spec-decoding-internals',  fallback: '/applied/inference-internals', title: 'Spec Decoding Internals',   summary: 'Verifier kernel, tree attention, EAGLE-3 architecture, and when spec decoding hurts.', track: 'applied', moduleName: 'Inference Internals', q: 3, r: 5, illustration: 'placeholder', available: true },
+  { slug: '/applied/inference-internals/flash-attn-3-internals',   fallback: '/applied/inference-internals', title: 'FlashAttention-3 Internals', summary: 'Producer/consumer warps, async WGMMA, pingpong schedule, intra-warpgroup overlap.',   track: 'applied', moduleName: 'Inference Internals', q: 4, r: 5, illustration: 'placeholder', available: true },
 
   // ════════════════════ EDGE AI (lichen) ════════════════════
   // Module: On-Device Runtimes

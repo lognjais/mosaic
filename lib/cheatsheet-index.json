@@ -28,6 +28,13 @@
     "tldr": "- **Prompt injection** is the canonical LLM security failure: untrusted input (a doc, a webpage, a tool result) contains instructions that hijack the model. Two flavors: **direct** (user types malicious prompt) and **indirect** (malicious content arrives via tool / RAG / agent loop).\n- There is **no model-side fix** that's bulletproof. Guardrails reduce risk; they don't eliminate it. The 2026 production answer is **defense in depth**.\n- **Llama Guard / Granite Guardian / WildGuard**: small classifier LLMs that screen inputs and outputs. ~95% accuracy on adversarial benchmarks; ship in production at every major lab.\n- **Dual-LLM pattern**: a \"privileged\" LLM that holds secrets / takes actions; a \"quarantined\" LLM that processes untrusted content. They communicate via structured channels only.\n- **Spotlighting**: tag untrusted content (delimiters, encodings) so the model knows it's data, not instructions. Combined with Pydantic structured output, the most practical defense."
   },
   {
+    "slug": "/applied/inference-internals/flash-attn-3-internals",
+    "track": "applied",
+    "module": "applied/inference-internals",
+    "title": "FlashAttention-3 Internals",
+    "tldr": "- **FA-2 left two big things on the table on Hopper**: it didn't use TMA (so SMs spent cycles dispatching loads), and it issued WGMMA *synchronously* (so consumer warps blocked on math while the next tile's data was being fetched). FA-3 fixes both.\n- **Warp specialization** splits the kernel into producer warps (TMA-only) and consumer warps (WGMMA + softmax). They communicate via SMEM buffers + `mbarrier` synchronization. The producer is always ahead — by the time consumers need tile k, tile k+1 is already in SMEM.\n- **WGMMA is async.** You issue `wgmma.commit_group` and continue executing other instructions; you `wgmma.wait_group` only when you actually need the result. This is the structural difference from FA-2's `mma.sync` which blocks the warp until done.\n- **The pingpong schedule** uses *two* consumer warpgroups (256 threads each) that alternate processing tiles. While warpgroup-A runs softmax on the previous WGMMA result, warpgroup-B is running the next WGMMA. The chip never idles.\n- **Intra-warpgroup overlap** runs softmax on the result of the *previous* WGMMA-1 (S = QK^T) *while* WGMMA-2 (O += P @ V) is in flight. The producer/consumer split hides HBM latency; the intra-warpgroup overlap hides math latency. Both are needed to reach 75%+ of Hopper peak."
+  },
+  {
     "slug": "/applied/inference-internals/sglang-internals",
     "track": "applied",
     "module": "applied/inference-internals",
