@@ -77,6 +77,29 @@ export function FocusScroll({ children }: { children: React.ReactNode }) {
     })
   }, [activeIndex, sections])
 
+  // End-of-content guard: when the reader scrolls past the last h2 the
+  // IntersectionObserver above stops firing (no heading is in the activation
+  // band), so activeIndex would freeze mid-list and trailing dots stay
+  // unfilled. Detect "near the bottom" and bump activeIndex past the last
+  // section so every dot reads as done.
+  useEffect(() => {
+    if (sections.length === 0) return
+
+    const onScroll = () => {
+      const doc = document.documentElement
+      const atEnd = window.scrollY + window.innerHeight >= doc.scrollHeight - 80
+      if (atEnd) setActiveIndex(sections.length)
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    onScroll()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [sections.length])
+
   // Reading-progress bar lives in CourseNav now (single, viewport-pinned).
 
   const scrollToSection = (index: number) => {
