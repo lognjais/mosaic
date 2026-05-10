@@ -4,4 +4,5 @@ export default {
   'rag-agents': 'RAG & Agents',
   serve: 'Serve & Ship',
   frontier: 'Frontier & Capstone',
+  'inference-internals': 'Inference Internals',
 }

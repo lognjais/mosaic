@@ -199,6 +199,9 @@ export const TILES: Tile[] = [
   { slug: '/applied/frontier/safety',               fallback: '/applied/frontier', title: 'Safety & Injection',    summary: 'Llama Guard, dual-LLM, spotlighting — defense-in-depth that actually works.', track: 'applied', moduleName: 'Frontier', q: 3, r: 4, illustration: 'safety', available: true },
   { slug: '/applied/frontier/capstone',             fallback: '/applied/frontier', title: 'Capstone: Ship It',     summary: 'Build, eval, and deploy a production RAG-agent in one weekend.',          track: 'applied', moduleName: 'Frontier',    q: 4, r: 4, illustration: 'capstone', available: true },
 
+  // Module: Inference Internals
+  { slug: '/applied/inference-internals/vllm-internals', fallback: '/applied/inference-internals', title: 'vLLM Internals',       summary: 'Scheduler, PagedAttention, V1 engine, and where contributors land PRs.', track: 'applied', moduleName: 'Inference Internals', q: 1, r: 5, illustration: 'placeholder', available: true },
+
   // ════════════════════ EDGE AI (lichen) ════════════════════
   // Module: On-Device Runtimes
   { slug: '/edge-ai/on-device/llama-cpp-internals', fallback: '/edge-ai/on-device', title: 'llama.cpp Internals',     summary: 'GGUF, mmap, Metal/Vulkan/NEON — the canonical local LLM runtime.',     track: 'edge-ai', moduleName: 'On-Device', q: -9, r: 5, illustration: 'llama-cpp-internals', available: true },

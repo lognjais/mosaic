@@ -1,0 +1,75 @@
+---
+title: Inference Internals
+description: How production LLM inference engines actually work, at the level a contributor needs. vLLM, SGLang, and the kernels under them.
+last_reviewed: 2026-05-10
+---
+# Inference Internals
+
+The "Serve & Ship" module covers inference at the product level — pick a stack, deploy it, optimize for cost and latency. This module is one layer down: how the engine itself works, at the level a contributor needs to read the source, file an issue, and ship a perf-cited PR. The bar is not "I used vLLM" but "I added a feature to vLLM, and a maintainer cited it in a release note."
+
+The framing matches the Year-1 OSS goal in the Atlas plan: a portfolio of 5–10 PRs across vLLM / SGLang / Triton, with at least one shipping a measurable perf improvement. The lessons here build the codebase fluency required to identify a good first issue, propose a credible improvement, and have your design doc taken seriously by maintainers who see hundreds of cold PRs a year.
+
+<ModuleProgress
+  lessons={[
+    { slug: '/applied/inference-internals/vllm-internals', title: 'vLLM Internals', estMin: 20 },
+  ]}
+/>
+
+<Capstone
+  title="Land a perf-cited PR in vLLM"
+  pitch="A merged PR in vLLM with measurable before/after benchmarks, cited by a maintainer in either the PR description or a release note."
+  what="A public branch with: a chosen feature target (50–200 LOC, scoped from a real issue), a design-doc comment on the issue, the PR with tests + benchmarks (NCU output for any kernel-level work), and the maintainer engagement thread. The artifact is the merged commit URL plus the citation."
+  sota={['vLLM 2024.x V1 engine', 'CUDA 12+', 'Triton 3.x for kernel work', 'Nsight Compute for perf claims', 'pytest + vLLM\'s benchmark suite']}
+  device="colab"
+  time="2–4 weeks of part-time work (~30 h)"
+  level="advanced"
+  steps={[
+    {
+      title: 'Read the codebase tour',
+      goal: 'Walk every file in vllm/engine, vllm/core, vllm/worker, vllm/attention. For each, write a one-sentence summary of what it does and which other files import from it.',
+      checkpoint: 'A 1-page MAP.md committed to your local branch with the file → role → callers diagram.',
+      trap: 'Reading every line in detail. The point is the dependency graph, not the implementation. Cap each file at 5 minutes.',
+      est: '3 h',
+    },
+    {
+      title: 'Hang in the Discord and issues for a week',
+      goal: 'Join vLLM Discord. Read every PR review and issue triage for 7 days. Note which maintainers care about which subsystems and what kinds of PRs land fast vs stall.',
+      checkpoint: 'A private list of 3 maintainers + their subsystem ownership + 5 candidate good-first-issue tickets you understand.',
+      trap: 'Picking issues that look easy but have invisible blockers (model-architecture changes that conflict with V1 work; quantization changes that need NVIDIA review). Maintainers will tell you in the issue thread which are safe to pick up.',
+      est: '4 h',
+    },
+    {
+      title: 'Write a design-doc comment before any code',
+      goal: 'On the chosen issue, post a 200–400 word design comment: what you propose, scope (LOC estimate), test plan, benchmark methodology. Wait for at least one maintainer ack.',
+      checkpoint: 'Maintainer comment of the form "this looks reasonable; go ahead" or specific feedback on scope.',
+      trap: 'Skipping this step. Cold PRs without prior design alignment routinely sit unreviewed for months.',
+      est: '2 h',
+    },
+    {
+      title: 'Implement, test, benchmark',
+      goal: 'Write the change. Add tests (vLLM uses pytest; check existing tests in tests/). Add a benchmark using vllm/benchmarks/ scripts or a custom one. For kernel work, capture NCU output.',
+      checkpoint: 'Local tests pass; benchmark shows the claimed perf delta with a reproducer command.',
+      trap: 'Forgetting V1 engine compatibility. vLLM is mid-rewrite (V0 → V1). Check whether your code path is V0-only, V1-only, or both, and target the live one.',
+      est: '15 h',
+    },
+    {
+      title: 'Open the PR with the design doc as the description',
+      goal: 'PR description: link to issue, summary of the change, before/after benchmark table with reproducer command, test plan checked, screenshots/NCU output for kernel work. Tag the maintainer who acked the design.',
+      checkpoint: 'PR opens, CI passes (or you address failures), maintainer review thread is active.',
+      trap: 'PR descriptions that are too short. The bar is "another engineer can review this without context-switching" — be over-thorough on numbers.',
+      est: '4 h',
+    },
+    {
+      title: 'Iterate to merge, ask for citation',
+      goal: 'Apply review feedback. After merge, ask the reviewer: "If this is suitable for the next release notes, please mention by name — happy to draft a one-line summary." This is the citation step.',
+      checkpoint: 'PR merged. If perf-improving, citation lands in release notes or a maintainer-authored design doc within 1 month.',
+      est: '2 h',
+    },
+  ]}
+  outcomes={[
+    'A merged PR with measurable perf delta, cited by a maintainer',
+    'Working relationships with 1–2 vLLM/SGLang/Triton maintainers',
+    'The Year-1 OSS portfolio anchor PR — the one that proves the rest is more than activity',
+    'Codebase fluency that compounds: the next 4 PRs will land 3× faster than the first',
+  ]}
+/>

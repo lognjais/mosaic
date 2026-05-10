@@ -28,6 +28,13 @@
     "tldr": "- **Prompt injection** is the canonical LLM security failure: untrusted input (a doc, a webpage, a tool result) contains instructions that hijack the model. Two flavors: **direct** (user types malicious prompt) and **indirect** (malicious content arrives via tool / RAG / agent loop).\n- There is **no model-side fix** that's bulletproof. Guardrails reduce risk; they don't eliminate it. The 2026 production answer is **defense in depth**.\n- **Llama Guard / Granite Guardian / WildGuard**: small classifier LLMs that screen inputs and outputs. ~95% accuracy on adversarial benchmarks; ship in production at every major lab.\n- **Dual-LLM pattern**: a \"privileged\" LLM that holds secrets / takes actions; a \"quarantined\" LLM that processes untrusted content. They communicate via structured channels only.\n- **Spotlighting**: tag untrusted content (delimiters, encodings) so the model knows it's data, not instructions. Combined with Pydantic structured output, the most practical defense."
   },
   {
+    "slug": "/applied/inference-internals/vllm-internals",
+    "track": "applied",
+    "module": "applied/inference-internals",
+    "title": "vLLM Internals",
+    "tldr": "- **vLLM is a continuous-batching inference engine** built around three ideas: a scheduler that re-evaluates the batch every step, a paged KV cache (PagedAttention) that makes admit/evict cheap, and a worker process that runs one forward pass per scheduling tick.\n- **PagedAttention** stores the KV cache in fixed-size **blocks** (typically 16 tokens). Each request has a **block table** that maps logical positions to physical blocks. Sharing prefixes is \"share the block pointer,\" not \"memcpy the cache.\" This is the data structure that makes prefix caching, swapping, and copy-on-write trivial.\n- **The scheduler runs the SJF-with-priority pattern**: at each step, pick prefill requests with budget remaining, then admit decode for all running requests, mix into one forward pass. Preemption (swap to CPU or recompute) kicks in when KV cache is full.\n- **vLLM is mid-rewrite — the V1 engine.** V0 was the original 2023 architecture; V1 is the 2024–2025 rewrite (async scheduler, persistent worker, structured I/O). Most active contribution work targets V1; check `vllm/v1/` for the live code.\n- **The four extension points contributors actually use**: model architectures (`vllm/model_executor/models/`), attention backends (`vllm/attention/backends/`), schedulers/policies (`vllm/core/scheduler.py` or `vllm/v1/core/`), and quantization kernels (Marlin, INT4, FP8 — under `vllm/model_executor/layers/quantization/`)."
+  },
+  {
     "slug": "/applied/llm-basics/embeddings",
     "track": "applied",
     "module": "applied/llm-basics",
