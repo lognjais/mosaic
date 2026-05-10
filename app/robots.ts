@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/_next/'],
+      disallow: ['/api/', '/_next/', '/atlas/'],
     },
     sitemap: 'https://mosaic.shivy.dev/sitemap.xml',
   }

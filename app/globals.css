@@ -1,30 +1,37 @@
 /* ============================================================
-   Mosaic — brand tokens
+   Mosaic — brand tokens (blue-dominant palette, May 2026)
+   Cool deep-navy ground, layered shades of blue + teal as accents.
+   One warm accent (amber) is preserved for the "current / highlight"
+   role only — used very sparingly. The rest of the palette is blue
+   family. Track tokens map onto this for the Atlas spine + lesson
+   accents.
    ============================================================ */
 :root {
-  /* Dark defaults (also serves as fallback if the theme-init script fails) */
-  --m-bg: #0a0a0f;
-  --m-bg-soft: #12121b;
-  --m-fg: #f5f3ee;
-  --m-fg-muted: rgba(245, 243, 238, 0.65);
-  --m-fg-dim: rgba(245, 243, 238, 0.4);
-  --m-border: rgba(245, 243, 238, 0.08);
-  --m-code-bg: #0e0e16;
-  --m-code-inline-bg: rgba(245, 243, 238, 0.08);
+  --m-bg: #0a1124;
+  --m-bg-soft: #131a30;
+  --m-fg: #e6edf7;
+  --m-fg-muted: rgba(230, 237, 247, 0.66);
+  --m-fg-dim: rgba(230, 237, 247, 0.42);
+  --m-border: rgba(230, 237, 247, 0.09);
+  --m-code-bg: #0d1428;
+  --m-code-inline-bg: rgba(230, 237, 247, 0.08);
 
-  --m-terracotta: #e07a5f;
-  --m-sage: #81b29a;
-  --m-gold: #f2cc8f;
-  --m-indigo: #5b8acc;
-  --m-plum: #b86fa5;
+  /* Brand accent ramp — blue-dominant. Variable names preserved so the
+     rest of the app keeps working; values shifted from warm parchment
+     to deep-blue palette. */
+  --m-terracotta: #4f93e8; /* was warm coral → now azure */
+  --m-sage: #5eead4;       /* mint-teal — kept; serves as the "done" colour */
+  --m-gold: #facc15;       /* amber — singular warm highlight, used sparingly */
+  --m-indigo: #818cf8;
+  --m-plum: #a78bfa;       /* violet-leaning */
 
-  --m-track-foundations: var(--m-terracotta);
-  --m-track-execution: var(--m-sage);
-  --m-track-training: var(--m-plum);
-  --m-track-architecture: var(--m-gold);
-  --m-track-compilers: var(--m-indigo);
-  --m-track-applied: #4a9b8e;
-  --m-track-edge-ai: #7ba05b;
+  --m-track-foundations: var(--m-terracotta);   /* azure */
+  --m-track-execution: var(--m-sage);           /* mint-teal — done */
+  --m-track-training: var(--m-plum);            /* violet */
+  --m-track-architecture: var(--m-gold);        /* amber highlight */
+  --m-track-compilers: var(--m-indigo);         /* indigo */
+  --m-track-applied: #38bdf8;                   /* sky cyan */
+  --m-track-edge-ai: #67a6c4;                   /* slate teal */
 
   --m-nav-h: 56px;
   --m-content-max: 44rem;
@@ -44,25 +51,31 @@
   color-scheme: dark;
 }
 
-/* Light theme — activated by inline init script when user prefers light */
+/* Light theme — activated by inline init script when user prefers light.
+   Cool off-white ground; deeper blue accents for AAA contrast. */
 html.light {
-  --m-bg: #fbfaf6;
-  --m-bg-soft: #f3f0e9;
-  --m-fg: #1a1a24;
-  --m-fg-muted: rgba(26, 26, 36, 0.7);
-  --m-fg-dim: rgba(26, 26, 36, 0.45);
-  --m-border: rgba(26, 26, 36, 0.10);
-  --m-code-bg: #f3f0e9;
-  --m-code-inline-bg: rgba(26, 26, 36, 0.06);
+  --m-bg: #f5f8fc;
+  --m-bg-soft: #e7eef7;
+  --m-fg: #0e1526;
+  --m-fg-muted: rgba(14, 21, 38, 0.7);
+  --m-fg-dim: rgba(14, 21, 38, 0.46);
+  --m-border: rgba(14, 21, 38, 0.10);
+  --m-code-bg: #e7eef7;
+  --m-code-inline-bg: rgba(14, 21, 38, 0.06);
 
-  /* Slightly darken track accents for AAA contrast on light bg */
-  --m-track-foundations: #c45a3f;
-  --m-track-execution: #5a8e76;
-  --m-track-training: #9a4a87;
-  --m-track-architecture: #b8902f;
-  --m-track-compilers: #3d6ba8;
-  --m-track-applied: #2f7d72;
-  --m-track-edge-ai: #4f7338;
+  --m-terracotta: #2563eb; /* royal blue */
+  --m-sage: #0ea884;
+  --m-gold: #b08400;
+  --m-indigo: #4338ca;
+  --m-plum: #7c3aed;
+
+  --m-track-foundations: #2563eb;
+  --m-track-execution: #0ea884;
+  --m-track-training: #7c3aed;
+  --m-track-architecture: #b08400;
+  --m-track-compilers: #4338ca;
+  --m-track-applied: #0284c7;
+  --m-track-edge-ai: #2c7a8c;
 
   /* Mermaid in light mode: light-on-dark inverted — node fill = paper-soft,
      strokes / edges / labels in dark ink. */
@@ -4090,3 +4103,1465 @@ h2.m-focus-h2.is-active {
   border-color: color-mix(in srgb, var(--m-fg) 25%, transparent);
   background: color-mix(in srgb, var(--m-fg) 4%, transparent);
 }
+
+/* ============================================================
+   Atlas — private 16-week transition tracker (/atlas)
+   Hidden route. Not in nav, not in sitemap, robots-disallowed.
+   ============================================================ */
+.m-atlas {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.m-atlas-header { margin-bottom: 2rem; }
+
+.m-atlas-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.m-atlas-title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--m-fg);
+}
+.m-atlas-sub {
+  font-size: 0.82rem;
+  color: var(--m-fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.m-atlas-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.4rem 0 1.2rem;
+  font-size: 0.9rem;
+  color: var(--m-fg-muted);
+  flex-wrap: wrap;
+}
+.m-atlas-stat strong {
+  color: var(--m-fg);
+  font-weight: 600;
+}
+.m-atlas-stat-sep { color: var(--m-fg-dim); }
+.m-atlas-stat-phase {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  background: var(--m-code-inline-bg);
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
+}
+
+/* Spine — top week strip */
+.m-atlas-spine {
+  display: flex;
+  gap: 0.32rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--m-border);
+  border-bottom: 1px solid var(--m-border);
+  margin-top: 0.3rem;
+}
+.m-atlas-spine-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--m-border);
+  background: var(--m-bg-soft);
+  color: var(--m-fg-muted);
+  font-size: 0.72rem;
+  font-family: var(--font-mono), monospace;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+}
+.m-atlas-spine-dot:hover {
+  border-color: color-mix(in srgb, var(--m-fg) 30%, transparent);
+  transform: translateY(-1px);
+}
+.m-atlas-spine-dot-done {
+  background: color-mix(in srgb, var(--m-track-execution) 35%, var(--m-bg-soft));
+  border-color: color-mix(in srgb, var(--m-track-execution) 60%, transparent);
+  color: var(--m-fg);
+}
+.m-atlas-spine-dot-current {
+  background: var(--m-fg);
+  color: var(--m-bg);
+  border-color: var(--m-fg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--m-fg) 12%, transparent);
+}
+.m-atlas-spine-dot-current.m-atlas-spine-dot-done {
+  background: var(--m-track-execution);
+  border-color: var(--m-track-execution);
+  color: var(--m-bg);
+}
+.m-atlas-spine-num { line-height: 1; }
+
+/* Week panel */
+.m-atlas-week {
+  display: grid;
+  gap: 1.5rem;
+}
+.m-atlas-week-head { padding-top: 0.8rem; }
+.m-atlas-week-meta {
+  font-size: 0.78rem;
+  color: var(--m-fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+.m-atlas-week-title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  color: var(--m-fg);
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.m-atlas-week-num {
+  font-family: var(--font-mono), monospace;
+  font-size: 1rem;
+  color: var(--m-fg-dim);
+  font-weight: 500;
+}
+.m-atlas-week-goal {
+  font-size: 1rem;
+  color: var(--m-fg);
+  margin: 0 0 0.4rem;
+  line-height: 1.55;
+}
+.m-atlas-week-blurb {
+  font-size: 0.88rem;
+  color: var(--m-fg-muted);
+  margin: 0 0 0.8rem;
+  font-style: italic;
+}
+.m-atlas-week-progress {
+  height: 4px;
+  background: var(--m-bg-soft);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+.m-atlas-week-progress-fill {
+  height: 100%;
+  background: var(--m-track-execution);
+  transition: width 0.25s ease;
+}
+.m-atlas-week-progress-meta {
+  font-size: 0.78rem;
+  color: var(--m-fg-dim);
+}
+
+/* Four-column track layout */
+.m-atlas-cols {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+@media (max-width: 1024px) {
+  .m-atlas-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .m-atlas-cols { grid-template-columns: 1fr; }
+}
+
+.m-atlas-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.m-atlas-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--m-bg-soft);
+  border-left: 3px solid var(--track-accent, var(--m-fg-dim));
+  margin-bottom: 0.2rem;
+}
+.m-atlas-col-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--m-fg);
+}
+.m-atlas-col-count {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  color: var(--m-fg-muted);
+}
+.m-atlas-col-empty .m-atlas-col-empty-msg {
+  font-size: 0.82rem;
+  color: var(--m-fg-dim);
+  font-style: italic;
+  padding: 0.5rem 0.6rem;
+}
+
+.m-atlas-col-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Task card */
+.m-atlas-task {
+  border: 1px solid var(--m-border);
+  border-radius: 0.45rem;
+  background: var(--m-bg-soft);
+  transition: border-color 0.12s ease, opacity 0.12s ease;
+}
+.m-atlas-task:hover {
+  border-color: color-mix(in srgb, var(--m-fg) 18%, transparent);
+}
+.m-atlas-task-done {
+  opacity: 0.55;
+}
+.m-atlas-task-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.55rem 0.6rem;
+}
+
+.m-atlas-check {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+  border-radius: 0.28rem;
+  border: 1.5px solid color-mix(in srgb, var(--m-fg) 30%, transparent);
+  background: var(--m-bg);
+  color: var(--m-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.m-atlas-check:hover {
+  border-color: color-mix(in srgb, var(--m-fg) 50%, transparent);
+}
+.m-atlas-check-done {
+  background: var(--m-track-execution);
+  border-color: var(--m-track-execution);
+  color: var(--m-bg);
+}
+
+.m-atlas-task-main {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--m-fg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+.m-atlas-task-title {
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--m-fg);
+}
+.m-atlas-task-done .m-atlas-task-title {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--m-fg-dim);
+}
+.m-atlas-task-meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--m-fg-dim);
+  font-family: var(--font-mono), monospace;
+  flex-wrap: wrap;
+}
+.m-atlas-task-hours {
+  background: var(--m-code-inline-bg);
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.22rem;
+}
+.m-atlas-task-prereq {
+  color: var(--m-fg-muted);
+  font-style: italic;
+}
+.m-atlas-task-id {
+  margin-left: auto;
+  opacity: 0.55;
+}
+
+.m-atlas-task-body {
+  border-top: 1px solid var(--m-border);
+  padding: 0.6rem 0.7rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.m-atlas-task-desc {
+  font-size: 0.88rem;
+  color: var(--m-fg-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+.m-atlas-task-verify {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.55rem;
+  background: var(--m-bg);
+  border-radius: 0.32rem;
+  border-left: 2px solid var(--m-track-execution);
+}
+.m-atlas-task-verify-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--m-track-execution);
+  font-weight: 600;
+  flex: none;
+}
+.m-atlas-task-verify-text {
+  color: var(--m-fg);
+  line-height: 1.45;
+}
+.m-atlas-task-note { display: flex; flex-direction: column; gap: 0.25rem; }
+.m-atlas-task-note-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--m-fg-dim);
+  font-weight: 600;
+}
+.m-atlas-task-note-input {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  padding: 0.5rem 0.6rem;
+  background: var(--m-bg);
+  border: 1px solid var(--m-border);
+  border-radius: 0.32rem;
+  color: var(--m-fg);
+  resize: vertical;
+  min-height: 3rem;
+}
+.m-atlas-task-note-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--m-fg) 35%, transparent);
+}
+
+/* Prev/Next nav */
+.m-atlas-week-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--m-border);
+}
+.m-atlas-nav-btn {
+  background: var(--m-bg);
+  border: 1px solid var(--m-border);
+  color: var(--m-fg);
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.m-atlas-nav-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--m-fg) 30%, transparent);
+  background: var(--m-bg-soft);
+}
+.m-atlas-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Footer controls */
+.m-atlas-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--m-border);
+  font-size: 0.85rem;
+  color: var(--m-fg-muted);
+  flex-wrap: wrap;
+}
+.m-atlas-footer-sep { color: var(--m-fg-dim); }
+.m-atlas-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--m-fg-muted);
+  font-size: 0.85rem;
+  font-family: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--m-fg-dim);
+  text-underline-offset: 3px;
+}
+.m-atlas-link:hover {
+  color: var(--m-fg);
+  text-decoration-color: var(--m-fg);
+}
+.m-atlas-link-danger { color: color-mix(in srgb, var(--m-terracotta) 80%, var(--m-fg-muted)); }
+
+/* Full-tree view */
+.m-atlas-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+}
+.m-atlas-tree-phase {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.m-atlas-tree-phase-head {
+  padding: 0 0 0.6rem;
+  border-bottom: 1px solid var(--m-border);
+}
+.m-atlas-tree-phase-title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+  color: var(--m-fg);
+}
+.m-atlas-tree-phase-blurb {
+  font-size: 0.9rem;
+  color: var(--m-fg-muted);
+  margin: 0 0 0.4rem;
+  line-height: 1.55;
+}
+.m-atlas-tree-phase-artifact {
+  font-size: 0.85rem;
+  color: var(--m-fg-muted);
+  margin: 0 0 0.5rem;
+}
+.m-atlas-tree-phase-artifact strong { color: var(--m-fg); }
+.m-atlas-tree-phase-progress {
+  height: 3px;
+  background: var(--m-bg-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.m-atlas-tree-phase-progress-fill {
+  height: 100%;
+  background: var(--m-track-execution);
+}
+.m-atlas-tree-phase-meta {
+  font-size: 0.75rem;
+  color: var(--m-fg-dim);
+  margin-top: 0.3rem;
+  font-family: var(--font-mono), monospace;
+}
+
+.m-atlas-tree-week {
+  border-left: 2px solid var(--m-border);
+  padding: 0.4rem 0 0.4rem 1rem;
+  margin-left: 0.5rem;
+}
+.m-atlas-tree-week-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.m-atlas-tree-week-jump {
+  background: var(--m-bg-soft);
+  border: 1px solid var(--m-border);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.28rem;
+  color: var(--m-fg);
+  cursor: pointer;
+}
+.m-atlas-tree-week-jump:hover {
+  border-color: color-mix(in srgb, var(--m-fg) 30%, transparent);
+}
+.m-atlas-tree-week-title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin: 0;
+  color: var(--m-fg);
+}
+.m-atlas-tree-week-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--m-fg-dim);
+  font-family: var(--font-mono), monospace;
+}
+.m-atlas-tree-week-goal {
+  font-size: 0.85rem;
+  color: var(--m-fg-muted);
+  margin: 0 0 0.6rem;
+  font-style: italic;
+}
+.m-atlas-tree-week-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.m-atlas-tree-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.m-atlas-tree-track-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  margin-bottom: 0.1rem;
+}
+
+/* ============================================================
+   Atlas — continuous 173-week spine + half-life + Bedrock layer
+   ============================================================ */
+
+/* ─────────────────────────────────────────────────────────
+   Atlas vertical timeline — main column + sticky minimap
+   ───────────────────────────────────────────────────────── */
+.m-atlas-tl-layout {
+  position: relative;
+  /* Reserve right gutter for the fixed minimap (28px wide + breathing room) */
+  padding-right: 56px;
+}
+.m-atlas-tl-main {
+  /* Main scroll column lives here; nothing special needed. */
+}
+
+/* The vertical line + per-row spacing */
+.m-atlas-tl {
+  position: relative;
+  margin-top: 1rem;
+  padding-left: 1.6rem;
+}
+.m-atlas-tl::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--m-border) 0%,
+    color-mix(in srgb, var(--m-fg) 12%, transparent) 50%,
+    var(--m-border) 100%
+  );
+}
+
+/* Single timeline row — node + (optional) expanded panel */
+.m-atlas-tl-row {
+  position: relative;
+  --phase-color: var(--m-track-execution);
+}
+.m-atlas-tl-row + .m-atlas-tl-row {
+  margin-top: 0.18rem;
+}
+.m-atlas-tl-row-phase-start {
+  margin-top: 1.2rem;
+}
+.m-atlas-tl-row-phase-start:first-child {
+  margin-top: 0;
+}
+
+/* Phase divider (sits above the first row of each new phase) */
+.m-atlas-tl-phase-divider {
+  position: relative;
+  margin: 0 0 0.4rem -1.6rem;
+  padding-left: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.m-atlas-tl-phase-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--phase-color) 40%, transparent);
+}
+.m-atlas-tl-phase-divider-tag {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  padding: 0.16rem 0.55rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--phase-color) 18%, transparent);
+  color: color-mix(in srgb, var(--phase-color) 95%, var(--m-fg));
+}
+
+/* The minimal node — what you see when collapsed */
+.m-atlas-tl-node {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.4rem 0.6rem 0.4rem 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--m-fg);
+  border-radius: 0.32rem;
+  transition: background 0.12s ease;
+}
+.m-atlas-tl-node:hover {
+  background: color-mix(in srgb, var(--phase-color) 6%, transparent);
+}
+.m-atlas-tl-node-open {
+  background: color-mix(in srgb, var(--phase-color) 10%, transparent);
+}
+
+/* The dot on the line */
+.m-atlas-tl-dot {
+  position: absolute;
+  left: -1.6rem + 4px;
+  left: calc(-1.6rem + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--phase-color) 22%, var(--m-bg));
+  border: 2px solid color-mix(in srgb, var(--phase-color) 55%, transparent);
+  z-index: 1;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.m-atlas-tl-node:hover .m-atlas-tl-dot {
+  background: color-mix(in srgb, var(--phase-color) 60%, var(--m-bg));
+  border-color: var(--phase-color);
+}
+.m-atlas-tl-node-done .m-atlas-tl-dot {
+  background: var(--phase-color);
+  border-color: var(--phase-color);
+}
+.m-atlas-tl-node-open .m-atlas-tl-dot {
+  background: var(--phase-color);
+  border-color: var(--m-fg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--phase-color) 28%, transparent);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.m-atlas-tl-w {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--m-fg);
+  min-width: 2.6rem;
+}
+.m-atlas-tl-phase-tag {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.14rem 0.42rem;
+  border-radius: 0.24rem;
+  background: color-mix(in srgb, var(--phase-color) 20%, transparent);
+  color: color-mix(in srgb, var(--phase-color) 95%, var(--m-fg));
+  white-space: nowrap;
+}
+.m-atlas-tl-phase-title {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--m-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.m-atlas-tl-period-tag {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  color: var(--m-fg-muted);
+  background: var(--m-code-inline-bg);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.22rem;
+}
+.m-atlas-tl-period-progress {
+  color: var(--m-fg-dim);
+}
+.m-atlas-tl-progress {
+  position: relative;
+  flex: none;
+  width: 3rem;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--m-bg-soft);
+  overflow: hidden;
+}
+.m-atlas-tl-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--phase-color);
+  transition: width 0.25s ease;
+}
+.m-atlas-tl-chev {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.95rem;
+  color: var(--m-fg-dim);
+  width: 1rem;
+  text-align: center;
+  transition: color 0.12s ease;
+}
+.m-atlas-tl-node:hover .m-atlas-tl-chev,
+.m-atlas-tl-node-open .m-atlas-tl-chev {
+  color: var(--m-fg);
+}
+
+/* The expanded inline panel */
+.m-atlas-tl-panel {
+  position: relative;
+  margin: 0.45rem 0 0.7rem 0.4rem;
+  padding: 0.9rem 1rem 1rem;
+  background: var(--m-bg-soft);
+  border: 1px solid color-mix(in srgb, var(--phase-color) 35%, var(--m-border));
+  border-left: 3px solid var(--phase-color);
+  border-radius: 0.45rem;
+  animation: m-atlas-tl-expand 0.18s ease-out;
+}
+@keyframes m-atlas-tl-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Inside the expanded panel, neutralise the wrapper border the WeekPanel
+   applies (we already get a stronger phase-tinted border from .m-atlas-tl-panel) */
+.m-atlas-tl-panel .m-atlas-week {
+  border-left: 0;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Sticky vertical mini-map — fixed at the right edge.
+   One sliver per global week. Click → expand-and-scroll.
+   ───────────────────────────────────────────────────────── */
+.m-atlas-mini {
+  position: fixed;
+  top: calc(var(--m-nav-h) + 1.2rem);
+  right: 0.6rem;
+  bottom: 1.2rem;
+  width: 28px;
+  z-index: 5;
+  display: flex;
+  align-items: stretch;
+  pointer-events: none; /* the rail itself takes pointer events */
+}
+.m-atlas-mini-rail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--m-bg-soft);
+  border: 1px solid var(--m-border);
+  border-radius: 4px;
+  overflow: hidden;
+  pointer-events: auto;
+  box-shadow: 0 6px 20px -10px rgba(0, 0, 0, 0.5);
+}
+.m-atlas-mini-cell {
+  flex: 1 1 0;
+  min-height: 1px;
+  background: color-mix(in srgb, var(--phase-color) 32%, var(--m-bg-soft));
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.1s ease, transform 0.1s ease;
+}
+.m-atlas-mini-cell:hover {
+  background: color-mix(in srgb, var(--phase-color) 80%, transparent);
+  transform: scaleX(1.25);
+}
+.m-atlas-mini-cell-phase-start {
+  border-top: 1px solid color-mix(in srgb, var(--m-fg) 25%, transparent);
+}
+.m-atlas-mini-cell-current {
+  background: var(--phase-color);
+  box-shadow: -3px 0 0 0 var(--m-fg) inset;
+}
+
+/* On narrower viewports, hide the minimap and reclaim the right gutter */
+@media (max-width: 900px) {
+  .m-atlas-mini {
+    display: none !important;
+  }
+  .m-atlas-tl-layout {
+    padding-right: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Mobile (≤ 640px) — vertical-stack timeline rows, tighten chrome.
+   ───────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .m-atlas {
+    padding: 1.4rem 0.95rem 2.8rem;
+  }
+  .m-atlas-title { font-size: 1.7rem; }
+  .m-atlas-sub { font-size: 0.74rem; }
+  .m-atlas-stats {
+    font-size: 0.82rem;
+    gap: 0.4rem;
+  }
+
+  /* Bedrock disclosure: let the summary line wrap below the chip */
+  .m-atlas-bedrock-toggle {
+    flex-wrap: wrap;
+    padding: 0.6rem 0.7rem;
+    gap: 0.5rem;
+  }
+  .m-atlas-bedrock-summary {
+    flex: 1 1 100%;
+    order: 3;
+    font-size: 0.8rem;
+  }
+  .m-atlas-bedrock-tag { order: 1; }
+  .m-atlas-bedrock-chev { order: 2; margin-left: auto; }
+  .m-atlas-bedrock-body {
+    padding: 0.4rem 0.7rem 0.85rem;
+  }
+  .m-atlas-bedrock-item {
+    padding: 0.5rem 0.55rem;
+  }
+  .m-atlas-bedrock-item-title { font-size: 0.85rem; }
+
+  /* Timeline: tighten the left gutter and shrink the dot */
+  .m-atlas-tl {
+    padding-left: 1.35rem;
+  }
+  .m-atlas-tl::before {
+    left: 9px;
+  }
+  .m-atlas-tl-dot {
+    left: calc(-1.35rem + 3px);
+    width: 12px;
+    height: 12px;
+    border-width: 2px;
+  }
+  .m-atlas-tl-phase-divider {
+    margin-left: -1.35rem;
+    padding-left: 1.35rem;
+    margin-bottom: 0.3rem;
+  }
+  .m-atlas-tl-phase-divider-tag {
+    font-size: 0.66rem;
+    padding: 0.15rem 0.45rem;
+  }
+
+  /* Node: two-line layout — W{n} + tag + chev on top, title on bottom */
+  .m-atlas-tl-node {
+    flex-wrap: wrap;
+    gap: 0.35rem 0.55rem;
+    padding: 0.5rem 0.55rem 0.55rem 0;
+    align-items: center;
+  }
+  .m-atlas-tl-w {
+    min-width: 2.2rem;
+    font-size: 0.76rem;
+  }
+  .m-atlas-tl-phase-tag {
+    font-size: 0.62rem;
+    padding: 0.12rem 0.36rem;
+  }
+  .m-atlas-tl-period-tag {
+    font-size: 0.66rem;
+    padding: 0.08rem 0.34rem;
+  }
+  /* Push the phase title to its own line and let it span full width */
+  .m-atlas-tl-phase-title {
+    flex: 1 1 100%;
+    order: 10;
+    font-size: 0.82rem;
+    color: var(--m-fg-muted);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.35;
+    padding-left: 0;
+  }
+  /* Inline progress bar takes less width */
+  .m-atlas-tl-progress {
+    width: 2.2rem;
+    height: 3px;
+  }
+  .m-atlas-tl-chev {
+    margin-left: auto;
+    font-size: 1.1rem;
+  }
+
+  /* Expanded panel: tighter inset on mobile */
+  .m-atlas-tl-panel {
+    margin: 0.4rem 0 0.6rem 0.15rem;
+    padding: 0.7rem 0.75rem 0.85rem;
+    border-radius: 0.4rem;
+  }
+  .m-atlas-tl-panel .m-atlas-week-title {
+    font-size: 1.15rem;
+  }
+  .m-atlas-tl-panel .m-atlas-week-goal {
+    font-size: 0.92rem;
+  }
+
+  /* Stream-filter tabs: scrollable on overflow rather than wrapping awkwardly */
+  .m-atlas-stream-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    scrollbar-width: thin;
+  }
+  .m-atlas-stream-tab {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  /* Resource rows: stack hours below title to keep title readable */
+  .m-atlas-resource {
+    flex-wrap: wrap;
+    gap: 0.4rem 0.55rem;
+  }
+  .m-atlas-resource-hours {
+    margin-left: auto;
+  }
+
+  /* Task rows: notes textarea full width */
+  .m-atlas-task-note-input {
+    font-size: 0.8rem;
+  }
+
+  /* Footer: tighter spacing — relies on flex-wrap from base style */
+  .m-atlas-footer {
+    gap: 0.4rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Very narrow phones (≤ 420px) — drop period chip from collapsed node */
+@media (max-width: 420px) {
+  .m-atlas {
+    padding: 1.1rem 0.7rem 2.4rem;
+  }
+  .m-atlas-tl-period-tag {
+    display: none;
+  }
+  .m-atlas-tl-progress {
+    display: none;
+  }
+  .m-atlas-bedrock-anchor {
+    font-size: 0.66rem;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Stream filter tabs — only shown in Year 1+ panels */
+.m-atlas-stream-tabs {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.2rem;
+  background: var(--m-bg-soft);
+  border: 1px solid var(--m-border);
+  border-radius: 0.5rem;
+  width: fit-content;
+}
+.m-atlas-stream-tab {
+  background: transparent;
+  border: 0;
+  padding: 0.4rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--m-fg-muted);
+  cursor: pointer;
+  border-radius: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.m-atlas-stream-tab:hover {
+  color: var(--m-fg);
+}
+.m-atlas-stream-tab-active {
+  background: var(--m-bg);
+  color: var(--m-fg);
+  border: 1px solid var(--m-border);
+}
+.m-atlas-stream-tab-count {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  color: var(--m-fg-dim);
+  background: var(--m-code-inline-bg);
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.22rem;
+  line-height: 1.4;
+}
+.m-atlas-stream-tab-active .m-atlas-stream-tab-count {
+  color: var(--m-fg);
+}
+
+/* Phase context + artifact inline meta */
+.m-atlas-week-meta-artifact {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--m-fg-muted);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+/* Stream tag on task title */
+.m-atlas-task-stream-tag {
+  margin-left: 0.45rem;
+  display: inline-block;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.22rem;
+  vertical-align: 0.1em;
+}
+.m-atlas-task-stream-tag-systems {
+  background: color-mix(in srgb, var(--m-track-execution) 22%, transparent);
+  color: color-mix(in srgb, var(--m-track-execution) 90%, var(--m-fg));
+}
+.m-atlas-task-stream-tag-research {
+  background: color-mix(in srgb, var(--m-track-training) 22%, transparent);
+  color: color-mix(in srgb, var(--m-track-training) 90%, var(--m-fg));
+}
+
+/* Stream-coloured task border accent */
+.m-atlas-task-stream-systems {
+  border-left: 2px solid color-mix(in srgb, var(--m-track-execution) 60%, transparent);
+}
+.m-atlas-task-stream-research {
+  border-left: 2px solid color-mix(in srgb, var(--m-track-training) 60%, transparent);
+}
+
+/* Resources count chip in task meta row */
+.m-atlas-task-reslink {
+  background: var(--m-code-inline-bg);
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.22rem;
+  color: var(--m-fg-muted);
+}
+
+/* Resources block in expanded task body */
+.m-atlas-task-resources {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.m-atlas-task-resources-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--m-fg-dim);
+  font-weight: 600;
+}
+.m-atlas-task-resources-list,
+.m-atlas-reading-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+}
+
+/* Resource row */
+.m-atlas-resource {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.45rem 0.55rem;
+  background: var(--m-bg);
+  border: 1px solid var(--m-border);
+  border-radius: 0.32rem;
+  text-decoration: none;
+  color: var(--m-fg);
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.m-atlas-resource:hover {
+  border-color: color-mix(in srgb, var(--m-fg) 28%, transparent);
+  background: var(--m-bg-soft);
+}
+.m-atlas-resource-kind {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.22rem;
+  background: var(--m-code-inline-bg);
+  color: var(--m-fg-muted);
+  line-height: 1.35;
+  margin-top: 0.05rem;
+  min-width: 3.4rem;
+  text-align: center;
+}
+.m-atlas-resource-kind-paper { background: color-mix(in srgb, var(--m-track-architecture) 22%, transparent); color: color-mix(in srgb, var(--m-track-architecture) 90%, var(--m-fg)); }
+.m-atlas-resource-kind-book { background: color-mix(in srgb, var(--m-track-foundations) 18%, transparent); color: color-mix(in srgb, var(--m-track-foundations) 90%, var(--m-fg)); }
+.m-atlas-resource-kind-video { background: color-mix(in srgb, var(--m-track-training) 18%, transparent); color: color-mix(in srgb, var(--m-track-training) 90%, var(--m-fg)); }
+.m-atlas-resource-kind-course { background: color-mix(in srgb, var(--m-track-compilers) 18%, transparent); color: color-mix(in srgb, var(--m-track-compilers) 90%, var(--m-fg)); }
+.m-atlas-resource-kind-docs { background: var(--m-code-inline-bg); color: var(--m-fg-muted); }
+.m-atlas-resource-kind-blog { background: color-mix(in srgb, var(--m-track-execution) 18%, transparent); color: color-mix(in srgb, var(--m-track-execution) 90%, var(--m-fg)); }
+.m-atlas-resource-kind-repo { background: color-mix(in srgb, var(--m-track-applied) 22%, transparent); color: color-mix(in srgb, var(--m-track-applied) 90%, var(--m-fg)); }
+.m-atlas-resource-kind-tool { background: color-mix(in srgb, var(--m-track-edge-ai) 22%, transparent); color: color-mix(in srgb, var(--m-track-edge-ai) 90%, var(--m-fg)); }
+.m-atlas-resource-kind-mosaic { background: color-mix(in srgb, var(--m-fg) 12%, transparent); color: var(--m-fg); }
+
+.m-atlas-resource-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+  flex: 1;
+}
+.m-atlas-resource-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--m-fg);
+}
+.m-atlas-resource:hover .m-atlas-resource-title {
+  text-decoration: underline;
+  text-decoration-color: var(--m-fg-dim);
+  text-underline-offset: 2px;
+}
+.m-atlas-resource-why {
+  font-size: 0.78rem;
+  color: var(--m-fg-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+.m-atlas-resource-hours {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  color: var(--m-fg-muted);
+  background: var(--m-code-inline-bg);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.22rem;
+  margin-top: 0.05rem;
+}
+
+/* Reading list footer (per period) */
+.m-atlas-reading {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--m-bg-soft);
+  border: 1px dashed var(--m-border);
+  border-radius: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.m-atlas-reading-head {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--m-fg-dim);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.m-atlas-reading-count {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  color: var(--m-fg-muted);
+  background: var(--m-code-inline-bg);
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.22rem;
+}
+.m-atlas-reading-item {
+  margin: 0;
+  padding: 0;
+}
+
+/* Tree-mode phase context paragraph */
+.m-atlas-tree-phase-context {
+  font-size: 0.85rem;
+  color: var(--m-fg-muted);
+  margin: 0.2rem 0 0.6rem;
+  line-height: 1.55;
+  font-style: italic;
+}
+
+/* Tree section: phase-tinted left border via --phase-color (set inline) */
+.m-atlas-tree-phase {
+  padding-left: 0.6rem;
+  border-left: 2px solid color-mix(in srgb, var(--phase-color, var(--m-fg-dim)) 45%, transparent);
+}
+
+/* ============================================================
+   Bedrock disclosure — manifesto of the 12 immutable foundations
+   ============================================================ */
+.m-atlas-bedrock {
+  margin: 0.6rem 0 1.2rem;
+  border: 1px solid var(--m-border);
+  border-radius: 0.55rem;
+  background: var(--m-bg-soft);
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+.m-atlas-bedrock-open {
+  border-color: color-mix(in srgb, var(--m-track-architecture) 45%, var(--m-border));
+}
+.m-atlas-bedrock-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.9rem;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--m-fg);
+  font-size: 0.88rem;
+  transition: background 0.12s ease;
+}
+.m-atlas-bedrock-toggle:hover {
+  background: color-mix(in srgb, var(--m-fg) 4%, transparent);
+}
+.m-atlas-bedrock-tag {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.28rem;
+  background: color-mix(in srgb, var(--m-track-architecture) 22%, transparent);
+  color: color-mix(in srgb, var(--m-track-architecture) 90%, var(--m-fg));
+}
+.m-atlas-bedrock-summary {
+  flex: 1;
+  font-size: 0.86rem;
+  color: var(--m-fg-muted);
+}
+.m-atlas-bedrock-chev {
+  font-family: var(--font-mono), monospace;
+  font-size: 1rem;
+  color: var(--m-fg-muted);
+  width: 1.2rem;
+  text-align: center;
+}
+.m-atlas-bedrock-body {
+  padding: 0.4rem 1rem 1rem;
+  border-top: 1px solid var(--m-border);
+}
+.m-atlas-bedrock-intro {
+  font-size: 0.85rem;
+  color: var(--m-fg-muted);
+  font-style: italic;
+  margin: 0.6rem 0 0.9rem;
+  line-height: 1.55;
+}
+.m-atlas-bedrock-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.m-atlas-bedrock-item {
+  padding: 0.55rem 0.7rem;
+  background: var(--m-bg);
+  border: 1px solid var(--m-border);
+  border-radius: 0.4rem;
+  border-left: 2px solid color-mix(in srgb, var(--m-track-architecture) 60%, transparent);
+}
+.m-atlas-bedrock-item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--m-fg);
+  line-height: 1.4;
+  margin-bottom: 0.18rem;
+}
+.m-atlas-bedrock-item-why {
+  font-size: 0.82rem;
+  color: var(--m-fg-muted);
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 0.35rem;
+}
+.m-atlas-bedrock-item-anchors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.m-atlas-bedrock-anchor {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.22rem;
+  background: var(--m-code-inline-bg);
+  color: var(--m-fg-muted);
+}
+.m-atlas-bedrock-footer {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--m-border);
+}
+.m-atlas-bedrock-living {
+  font-size: 0.82rem;
+  color: var(--m-fg-muted);
+  margin-bottom: 0.5rem;
+  line-height: 1.55;
+}
+.m-atlas-bedrock-living strong {
+  color: var(--m-fg);
+}
+.m-atlas-bedrock-living-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.m-atlas-bedrock-living-link {
+  font-size: 0.78rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 0.28rem;
+  background: var(--m-code-inline-bg);
+  color: var(--m-fg-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.m-atlas-bedrock-living-link:hover {
+  color: var(--m-fg);
+  border-color: var(--m-border);
+}
+
+/* ============================================================
+   Half-life badge — surfaces ephemerality on resources
+   ============================================================ */
+.m-atlas-halflife {
+  display: inline-block;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.22rem;
+  vertical-align: 0.12em;
+  line-height: 1.4;
+}
+.m-atlas-halflife-durable {
+  background: color-mix(in srgb, var(--m-track-execution) 18%, transparent);
+  color: color-mix(in srgb, var(--m-track-execution) 95%, var(--m-fg));
+}
+.m-atlas-halflife-fast {
+  background: color-mix(in srgb, var(--m-track-architecture) 22%, transparent);
+  color: color-mix(in srgb, var(--m-track-architecture) 95%, var(--m-fg));
+}
+
+/* Phase-tinted stat chip (replaces the plain mono chip) */
+.m-atlas-stat-phase {
+  background: color-mix(in srgb, var(--phase-color, var(--m-fg-dim)) 22%, var(--m-bg-soft));
+  color: color-mix(in srgb, var(--phase-color, var(--m-fg)) 92%, var(--m-fg));
+  border: 1px solid color-mix(in srgb, var(--phase-color, var(--m-fg-dim)) 40%, transparent);
+}
+
+/* Week-panel: positional + secondary period label */
+.m-atlas-week-num-secondary {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  color: var(--m-fg-muted);
+  background: var(--m-code-inline-bg);
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  margin-right: 0.3rem;
+}
+.m-atlas-week-positional {
+  font-size: 0.78rem;
+  color: var(--m-fg-dim);
+  font-family: var(--font-mono), monospace;
+  margin: 0 0 0.5rem;
+}
+.m-atlas-week-phase-tag {
+  font-size: 0.72rem;
+  color: color-mix(in srgb, var(--phase-color, var(--m-fg-muted)) 90%, var(--m-fg-muted));
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Week panel left-edge: phase color band */
+.m-atlas-week {
+  border-left: 3px solid color-mix(in srgb, var(--phase-color, var(--m-track-execution)) 65%, transparent);
+  padding-left: 1rem;
+  margin-left: -1rem;
+}
+
