@@ -6,9 +6,10 @@
 // should answer "why this one and not the dozen others on the same topic?"
 // in one sentence. Confident, specific, opinionated.
 
-export const LAST_SWEEP = '2026-04'
+export const LAST_SWEEP = '2026-05'
 
 export type ReadSection =
+  | 'provocations'
   | 'pioneers'
   | 'scaling'
   | 'safety'
@@ -29,6 +30,7 @@ export type ReadEntry = {
 }
 
 export const SECTION_ORDER: ReadSection[] = [
+  'provocations',
   'pioneers',
   'scaling',
   'safety',
@@ -38,6 +40,7 @@ export const SECTION_ORDER: ReadSection[] = [
 ]
 
 export const SECTION_TITLES: Record<ReadSection, string> = {
+  provocations: 'Provocations',
   pioneers: 'Pioneers',
   scaling: 'The bitter lesson + scaling canon',
   safety: 'AGI, alignment, safety',
@@ -47,6 +50,8 @@ export const SECTION_TITLES: Record<ReadSection, string> = {
 }
 
 export const SECTION_INTROS: Record<ReadSection, string> = {
+  provocations:
+    'The pieces that make you stop reading and stare at the wall for a while. Mostly older than the field as it currently exists; mostly philosophical or amusing or both. The questions they raise are the ones the rest of the canon is still answering, often badly.',
   pioneers:
     'The arguments that started everything. Most contemporary AI discourse is downstream of these — knowing the original framing is worth a few evenings.',
   scaling:
@@ -70,6 +75,82 @@ export const KIND_LABEL: Record<ReadKind, string> = {
 }
 
 export const READS: ReadEntry[] = [
+  // ===== Provocations =====
+  // Mind-benders, philosophical detonations, and amused-but-serious essays on
+  // what computation is and what it might become. Ordered roughly chronologically.
+  {
+    section: 'provocations',
+    kind: 'paper',
+    author: 'Jorge Luis Borges',
+    year: '1941',
+    href: 'https://libraryofbabel.info/Borges/libraryofbabel.html',
+    title: 'The Library of Babel',
+    note: 'A short story about a library containing every possible 410-page book — every truth and every lie, indistinguishable. Re-read it after sampling from a base LLM. The library exists; we built it; we still have not figured out what it means that all texts are in there at once.',
+  },
+  {
+    section: 'provocations',
+    kind: 'paper',
+    author: 'Vannevar Bush',
+    year: '1945',
+    href: 'https://www.theatlantic.com/magazine/archive/1945/07/as-we-may-think/303881/',
+    title: 'As We May Think',
+    note: 'The 1945 Atlantic essay that imagined the memex — a device that records and retrieves a person’s entire intellectual life through associative links. Read it after using ChatGPT and notice how much of the cognitive-prosthetic vision it nailed eighty years early.',
+  },
+  {
+    section: 'provocations',
+    kind: 'paper',
+    author: 'Drew McDermott',
+    year: '1976',
+    href: 'https://dl.acm.org/doi/10.1145/1045339.1045340',
+    title: 'Artificial Intelligence Meets Natural Stupidity',
+    note: 'A funny, mean critique of how AI researchers keep mistaking suggestive variable names for actual semantics. Written in 1976 about LISP programs; reads exactly like a 2026 critique of how we evaluate LLMs.',
+  },
+  {
+    section: 'provocations',
+    kind: 'book',
+    author: 'Douglas Hofstadter',
+    year: '1979',
+    href: 'https://en.wikipedia.org/wiki/G%C3%B6del,_Escher,_Bach',
+    title: 'Gödel, Escher, Bach: An Eternal Golden Braid',
+    note: 'Seven hundred pages on self-reference, levels of description, and what symbols mean — disguised as dialogues with a tortoise. Either you bounce off it in fifty pages or it permanently rewires how you think about cognition.',
+  },
+  {
+    section: 'provocations',
+    kind: 'paper',
+    author: 'John Searle',
+    year: '1980',
+    href: 'https://home.csulb.edu/~cwallis/382/readings/482/searle.minds.brains.programs.bbs.1980.pdf',
+    title: 'Minds, Brains, and Programs',
+    note: 'The Chinese Room argument, fully stated. Whether or not you find it convincing, every philosophical objection to LLM "understanding" that lands on Twitter today is a downstream variant of this paper. The popular versions miss the actual argument; read the original.',
+  },
+  {
+    section: 'provocations',
+    kind: 'blog',
+    author: 'Edsger Dijkstra',
+    year: '1988',
+    href: 'https://www.cs.utexas.edu/users/EWD/transcriptions/EWD10xx/EWD1036.html',
+    title: 'On the cruelty of really teaching computing science',
+    note: 'Dijkstra at his most provocative — arguing that computer science should be taught as a branch of formal mathematics, not as "how to use the latest tools." He is wrong about half of what he says and exactly right about the other half. Figuring out which is which is the exercise.',
+  },
+  {
+    section: 'provocations',
+    kind: 'paper',
+    author: 'Vernor Vinge',
+    year: '1993',
+    href: 'https://edoras.sdsu.edu/~vinge/misc/singularity.html',
+    title: 'The Coming Technological Singularity',
+    note: 'The 1993 essay that named the singularity. Read the predictions about superhuman intelligence and timelines, then notice the date. Whatever your priors on takeoff speeds, this is the document the conversation forks from.',
+  },
+  {
+    section: 'provocations',
+    kind: 'video',
+    author: 'Bret Victor',
+    year: '2013',
+    href: 'https://worrydream.com/dbx/',
+    title: 'The Future of Programming',
+    note: 'A thirty-minute talk performed in 1973 dress, claiming to predict the future of programming from the past. The deepest joke: most of his "1973 future" still has not shipped in 2026. Watch with the historical projector clicks intact.',
+  },
+
   // ===== Pioneers =====
   {
     section: 'pioneers',
@@ -97,15 +178,6 @@ export const READS: ReadEntry[] = [
     href: 'http://jmc.stanford.edu/articles/mcchay69.html',
     title: 'Some Philosophical Problems from the Standpoint of AI',
     note: 'Where the frame problem and situation calculus come from. The technical machinery is dated; the taxonomy of "what does an agent need to know about the world" is not.',
-  },
-  {
-    section: 'pioneers',
-    kind: 'book',
-    author: 'Douglas Hofstadter',
-    year: '1979',
-    href: 'https://en.wikipedia.org/wiki/G%C3%B6del,_Escher,_Bach',
-    title: 'Gödel, Escher, Bach: An Eternal Golden Braid',
-    note: 'Seven hundred pages on self-reference, levels of description, and what symbols mean — disguised as dialogues with a tortoise. Either you bounce off it in fifty pages or it permanently rewires how you think about cognition.',
   },
 
   // ===== Bitter lesson + scaling canon =====
