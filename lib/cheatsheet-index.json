@@ -28,6 +28,13 @@
     "tldr": "- **Prompt injection** is the canonical LLM security failure: untrusted input (a doc, a webpage, a tool result) contains instructions that hijack the model. Two flavors: **direct** (user types malicious prompt) and **indirect** (malicious content arrives via tool / RAG / agent loop).\n- There is **no model-side fix** that's bulletproof. Guardrails reduce risk; they don't eliminate it. The 2026 production answer is **defense in depth**.\n- **Llama Guard / Granite Guardian / WildGuard**: small classifier LLMs that screen inputs and outputs. ~95% accuracy on adversarial benchmarks; ship in production at every major lab.\n- **Dual-LLM pattern**: a \"privileged\" LLM that holds secrets / takes actions; a \"quarantined\" LLM that processes untrusted content. They communicate via structured channels only.\n- **Spotlighting**: tag untrusted content (delimiters, encodings) so the model knows it's data, not instructions. Combined with Pydantic structured output, the most practical defense."
   },
   {
+    "slug": "/applied/inference-internals/sglang-internals",
+    "track": "applied",
+    "module": "applied/inference-internals",
+    "title": "SGLang Internals",
+    "tldr": "- **SGLang is a continuous-batching engine like vLLM, but with a radix-tree KV cache** (`RadixAttention`) instead of a flat block pool. Shared prefixes between requests are *automatically* deduplicated as tree nodes; lookup is O(prefix_length).\n- **Structured generation is native, not bolted on.** XGrammar/Outlines-style grammar masks integrate at the sampler with negligible overhead. Regex, JSON-schema, and CFG decoding are first-class.\n- **A frontend DSL** (`sgl.gen`, `sgl.select`, `sgl.fork`, `sgl.assistant`) turns multi-turn LLM programs into objects the engine can co-schedule — fork/join semantics let one prompt \"branch\" into N parallel decode streams that share the prefix.\n- **Where vLLM and SGLang diverge perf-wise**: SGLang wins on workloads with heavy prefix reuse (multi-turn chat, RAG, agent traces, branching). vLLM wins on independent-request high-throughput workloads where the radix tree's bookkeeping is overhead. Pick by workload.\n- **Four extension points for contributors**: model architectures (`python/sglang/srt/models/`), attention/cache backends (`python/sglang/srt/layers/attention/`), scheduler policies (`python/sglang/srt/managers/scheduler.py`), structured-output backends (`python/sglang/srt/sampling/`). The structured-output surface is uniquely deep here — XGrammar integration, JSON-schema compilation, FSM compaction."
+  },
+  {
     "slug": "/applied/inference-internals/vllm-internals",
     "track": "applied",
     "module": "applied/inference-internals",

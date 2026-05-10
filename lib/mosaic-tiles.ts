@@ -200,7 +200,8 @@ export const TILES: Tile[] = [
   { slug: '/applied/frontier/capstone',             fallback: '/applied/frontier', title: 'Capstone: Ship It',     summary: 'Build, eval, and deploy a production RAG-agent in one weekend.',          track: 'applied', moduleName: 'Frontier',    q: 4, r: 4, illustration: 'capstone', available: true },
 
   // Module: Inference Internals
-  { slug: '/applied/inference-internals/vllm-internals', fallback: '/applied/inference-internals', title: 'vLLM Internals',       summary: 'Scheduler, PagedAttention, V1 engine, and where contributors land PRs.', track: 'applied', moduleName: 'Inference Internals', q: 1, r: 5, illustration: 'placeholder', available: true },
+  { slug: '/applied/inference-internals/vllm-internals',   fallback: '/applied/inference-internals', title: 'vLLM Internals',       summary: 'Scheduler, PagedAttention, V1 engine, and where contributors land PRs.',     track: 'applied', moduleName: 'Inference Internals', q: 1, r: 5, illustration: 'placeholder', available: true },
+  { slug: '/applied/inference-internals/sglang-internals', fallback: '/applied/inference-internals', title: 'SGLang Internals',     summary: 'RadixAttention, structured generation, the frontend DSL — and when SGLang wins.', track: 'applied', moduleName: 'Inference Internals', q: 2, r: 5, illustration: 'placeholder', available: true },
 
   // ════════════════════ EDGE AI (lichen) ════════════════════
   // Module: On-Device Runtimes
