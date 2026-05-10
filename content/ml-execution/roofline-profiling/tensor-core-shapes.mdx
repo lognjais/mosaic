@@ -14,7 +14,7 @@ This lesson is about the shapes themselves, why they exist, how to verify a kern
 
 ## TL;DR
 
-- Hopper Tensor Cores execute the **wgmma** instruction family. The shape is **m64 × N × k16** for fp16/bf16 (where N ∈ {8, 16, 24, ..., 256}) and **m64 × N × k32** for fp8. Outside these shapes, you are not on Tensor Cores — you are on CUDA cores at ~1/16th the throughput.
+- Hopper Tensor Cores execute the **wgmma** instruction family. The shape is **m64 × N × k16** for fp16/bf16 (where N is any multiple of 8 from 8 up to 256) and **m64 × N × k32** for fp8. Outside these shapes, you are not on Tensor Cores — you are on CUDA cores at ~1/16th the throughput.
 - A Triton kernel only hits Tensor Cores when its **per-warpgroup tile** is a multiple of (64, 16, K) for fp16 or (64, 32, K) for fp8. Block sizes like `(BLOCK_M=32, BLOCK_K=16)` silently miss.
 - The verification metric is **`sm__pipe_tensor_op_hmma_cycles_active.avg.pct_of_peak_sustained_active`** in NCU. **Anything below 30% means the kernel is mostly running on CUDA cores.** Production kernels target 60–85%.
 - Blackwell adds **fp4 (m64 × N × k64)** and **2:4 sparse fp8 (m64 × N × k64)**. The shape philosophy carries forward; the K dimension expands as precision shrinks.
@@ -235,7 +235,7 @@ You'll see the four classic traps light up immediately: BLOCK_M=32 (per-warpgrou
 
 ## TL;DR
 
-- Hopper Tensor Cores execute the **wgmma** instruction family. The shape is **m64 × N × k16** for fp16/bf16 (where N ∈ {8, 16, 24, ..., 256}) and **m64 × N × k32** for fp8. Outside these shapes, you are not on Tensor Cores — you are on CUDA cores at ~1/16th the throughput.
+- Hopper Tensor Cores execute the **wgmma** instruction family. The shape is **m64 × N × k16** for fp16/bf16 (where N is any multiple of 8 from 8 up to 256) and **m64 × N × k32** for fp8. Outside these shapes, you are not on Tensor Cores — you are on CUDA cores at ~1/16th the throughput.
 - A Triton kernel only hits Tensor Cores when its **per-warpgroup tile** is a multiple of (64, 16, K) for fp16 or (64, 32, K) for fp8. Block sizes like `(BLOCK_M=32, BLOCK_K=16)` silently miss.
 - The verification metric is **`sm__pipe_tensor_op_hmma_cycles_active.avg.pct_of_peak_sustained_active`** in NCU. Below 30% means the kernel is mostly running on CUDA cores. Production kernels target 60–85%.
 - Blackwell adds **fp4 (m64 × N × k64)** and **2:4 sparse fp8 (m64 × N × k64)**. The shape philosophy carries forward; the K dimension expands as precision shrinks.
@@ -271,7 +271,7 @@ flowchart TD
 | tf32 → fp32 | 64 × N × 8 | 8, 16, 24, …, 256 | 495 |
 | fp64 → fp64 | 64 × N × 16 | 8, 16, 32, …, 256 | 67 |
 
-Invariants: m always 64, k fixed per dtype, n free in {8, 16, ..., 256}.
+Invariants: m always 64, k fixed per dtype, n free as any multiple of 8 from 8 up to 256.
 
 Blackwell SM100 additions: NVFP4 at m64 × N × 64; 2:4 sparse fp8 at m64 × N × 64. Pattern: as precision shrinks, k doubles to keep the data path utilized.
 
@@ -314,7 +314,7 @@ Per-warpgroup tile = (BLOCK_M / (num_warps // 4), BLOCK_N, BLOCK_K). For wgmma f
 - per-warpgroup m **must equal 64**
 - BLOCK_K must be a multiple of 16
 - num_warps must be a multiple of 4
-- BLOCK_N must be in {8, 16, ..., 256}
+- BLOCK_N must be a multiple of 8 between 8 and 256
 
 For fp8: same except BLOCK_K must be a multiple of 32.
 
