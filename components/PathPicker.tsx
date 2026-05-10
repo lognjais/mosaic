@@ -6,15 +6,15 @@ const PATHS = [
     label: 'AI Systems',
     eyebrow: 'Reading order I',
     desc:
-      'Attention, KV cache, paged attention, prefix caching, disaggregated serving, sampling, vLLM, observability. The full inference pipeline.',
+      'Attention, FlashAttention-3 internals, KV cache, PagedAttention, prefix caching, disaggregated serving, vLLM/SGLang internals, speculative decoding kernels. The full inference pipeline at contributor depth.',
     accent: 'var(--m-track-architecture)',
   },
   {
-    slug: 'ml-compiler',
+    slug: 'ml-compilers',
     label: 'ML Compilers',
     eyebrow: 'Reading order II',
     desc:
-      'SM architecture, shared memory, TMA, GEMM, LLVM, MLIR, Triton, CUTLASS, ThunderKittens. From transistors to kernel DSLs.',
+      'SM architecture, GEMM, roofline as a predictive tool, Tensor Core shape constraints, NCU profiling, LLVM, MLIR, Triton, CUTLASS, ThunderKittens, Inductor fusion. From transistors to kernel DSLs.',
     accent: 'var(--m-track-compilers)',
   },
   {
@@ -22,7 +22,7 @@ const PATHS = [
     label: 'Edge AI',
     eyebrow: 'Reading order III',
     desc:
-      'Quantization, llama.cpp, ExecuTorch, Core ML, Hexagon NPU, GGUF, distillation. Running models off the cloud.',
+      'Quantization schemes, calibration methodology, KV cache quantization, llama.cpp, ExecuTorch, Core ML, Hexagon NPU, GGUF, distillation. Running models off the cloud.',
     accent: 'var(--m-track-applied)',
   },
 ]
@@ -38,7 +38,7 @@ export function PathPicker() {
           {PATHS.map((p) => (
             <Link
               key={p.slug}
-              href="/learning-paths"
+              href={`/learning-paths#${p.slug}`}
               className="m-path-card"
               style={{ ['--accent' as string]: p.accent }}
             >

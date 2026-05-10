@@ -1,7 +1,7 @@
 ---
 title: Reading Orders
 description: Three coherent paths through Mosaic. Pick the thread closest to the work you do.
-last_reviewed: 2026-04-26
+last_reviewed: 2026-05-10
 ---
 # Reading Orders
 
@@ -10,90 +10,119 @@ Mosaic isn't meant to be read end-to-end (though you can). The lessons are desig
 There is no required order. Lessons stand alone. Most learners follow a thread for a while, branch into a related one, come back. Use the [course map](/map) to see the whole graph.
 
 ---
-## I. AI Systems
+## AI Systems
 
-Attention, the KV cache, the inference pipeline, the serving stack.
+Attention, the KV cache, the inference pipeline, the serving stack — and the contributor-level depth on each that turns "I read about it" into "I've shipped a PR on it."
 
+**Architecture**
 1. [Multi-Head Attention](/llm-architecture/attention/mha)
 2. [GQA, MQA & MLA](/llm-architecture/attention/gqa-mqa-mla)
 3. [RoPE + YaRN / LongRoPE](/llm-architecture/attention/rope-yarn)
 4. [FlashAttention-3](/llm-architecture/attention/flash-attn-3)
-5. [KV Cache Basics](/llm-architecture/kv-cache/kv-basics)
-6. [PagedAttention](/llm-architecture/kv-cache/paged-attention)
-7. [Prefix & RadixAttention](/llm-architecture/kv-cache/prefix-radix)
-8. [Disaggregated Serving](/llm-architecture/kv-cache/disaggregated)
-9. [Sampling](/llm-architecture/inference-time/sampling)
-10. [Structured Output](/llm-architecture/inference-time/structured-output)
-11. [Chunked Prefill](/llm-architecture/inference-time/chunked-prefill)
-12. [Speculative Decoding](/llm-architecture/inference-time/spec-decoding)
-13. [vLLM & SGLang](/applied/serve/vllm-sglang)
-14. [Cost & Latency](/applied/serve/cost-latency)
-15. [Observability](/applied/serve/observability)
+5. [FlashAttention-3 Internals](/applied/inference-internals/flash-attn-3-internals)
 
-The capstone in [Inference-Time Architecture](/llm-architecture/inference-time) — a 200-line continuous-batching server — is the artifact this thread is built around.
+**KV Cache**
+6. [KV Cache Basics](/llm-architecture/kv-cache/kv-basics)
+7. [PagedAttention](/llm-architecture/kv-cache/paged-attention)
+8. [Prefix & RadixAttention](/llm-architecture/kv-cache/prefix-radix)
+9. [Disaggregated Serving](/llm-architecture/kv-cache/disaggregated)
+
+**Inference-time**
+10. [Sampling](/llm-architecture/inference-time/sampling)
+11. [Structured Output](/llm-architecture/inference-time/structured-output)
+12. [Chunked Prefill](/llm-architecture/inference-time/chunked-prefill)
+13. [Speculative Decoding](/llm-architecture/inference-time/spec-decoding)
+14. [Speculative Decoding Internals](/applied/inference-internals/spec-decoding-internals)
+
+**Serving stack**
+15. [vLLM & SGLang](/applied/serve/vllm-sglang)
+16. [vLLM Internals](/applied/inference-internals/vllm-internals)
+17. [SGLang Internals](/applied/inference-internals/sglang-internals)
+18. [Cost & Latency](/applied/serve/cost-latency)
+19. [Observability](/applied/serve/observability)
+
+**Contributor track**
+20. [OSS Contribution Playbook](/applied/inference-internals/oss-contribution-playbook)
+
+The capstone in [Inference Internals](/applied/inference-internals) — landing a perf-cited PR in vLLM — is the artifact this thread is built around.
 
 ---
-## II. ML Compilers & Kernels
+## ML Compilers
 
-GPUs from the silicon up; the compilers and DSLs that target them.
+GPUs from the silicon up; the bedrock-meets-tooling layer (roofline, Tensor Core shapes, NCU); the compilers and DSLs that target them.
 
+**Hardware mental model**
 1. [SM Architecture](/ml-execution/gpu-fundamentals/sm-architecture)
 2. [Thread Hierarchy](/ml-execution/gpu-fundamentals/thread-hierarchy)
 3. [Shared Memory](/ml-execution/gpu-fundamentals/shared-memory)
 4. [GEMM (Hopper / Blackwell)](/ml-execution/gpu-fundamentals/gemm)
 5. [Strides & Layout](/ml-execution/tensors-in-memory/strides-and-layout)
 6. [TMA & cp.async](/ml-execution/tensors-in-memory/tma-async-copy)
-7. [LLVM IR Tour](/compilers/foundation/llvm-ir)
-8. [Passes & Pipelines](/compilers/foundation/passes)
-9. [MLIR Overview](/compilers/foundation/mlir-overview)
-10. [Dialects & Lowering](/compilers/foundation/lowering)
-11. [torch.compile](/compilers/production/torch-compile)
-12. [Triton](/compilers/kernels/triton)
-13. [CuTe & CUTLASS 4](/compilers/kernels/cute-cutlass)
-14. [ThunderKittens & TileLang](/compilers/kernels/thunderkittens)
-15. [Operator Fusion](/compilers/production/operator-fusion)
-16. [JAX & Pallas](/compilers/production/jax-pallas)
-17. [IREE & ExecuTorch](/compilers/production/iree-executorch)
-18. [Hardware Landscape 2026](/compilers/kernels/hardware-landscape)
 
-The capstone — [a Triton kernel that beats cuBLAS at small-N GEMM](/ml-execution/gpu-fundamentals) — is the artifact. The build guide on that page walks you through it step by step.
+**Roofline & Profiling — the predict-then-verify discipline**
+7. [Roofline as a Predictive Tool](/ml-execution/roofline-profiling/roofline-prediction)
+8. [Tensor Core SHAPE Constraints](/ml-execution/roofline-profiling/tensor-core-shapes)
+9. [Nsight Compute: The Metric Tree](/ml-execution/roofline-profiling/ncu-metrics)
+
+**Compiler theory**
+10. [LLVM IR Tour](/compilers/foundation/llvm-ir)
+11. [Passes & Pipelines](/compilers/foundation/passes)
+12. [MLIR Overview](/compilers/foundation/mlir-overview)
+13. [Dialects & Lowering](/compilers/foundation/lowering)
+
+**Production compilers + kernel DSLs**
+14. [torch.compile](/compilers/production/torch-compile)
+15. [Inductor Fusion Heuristics](/ml-execution/roofline-profiling/torch-compile-fusion)
+16. [Operator Fusion](/compilers/production/operator-fusion)
+17. [Triton](/compilers/kernels/triton)
+18. [CuTe & CUTLASS 4](/compilers/kernels/cute-cutlass)
+19. [ThunderKittens & TileLang](/compilers/kernels/thunderkittens)
+20. [JAX & Pallas](/compilers/production/jax-pallas)
+21. [IREE & ExecuTorch](/compilers/production/iree-executorch)
+
+**Distributed kernels + landscape**
+22. [NCCL & AllReduce Internals](/training/networking/nccl-collectives)
+23. [Hardware Landscape 2026](/compilers/kernels/hardware-landscape)
+
+The capstone — [a fused Triton kernel + roofline writeup](/ml-execution/roofline-profiling) — is the artifact. The build guide on that page walks you through it step by step (the same artifact Atlas Capstone 1 ships).
 
 ---
-## III. Edge AI
+## Edge AI
 
 Quantization, on-device runtimes, NPUs, the browser, and swarm inference. The part of the field that runs without the cloud — including a LAN of phones running 70B together.
 
-**Foundations**
+**Quantization schemes + calibration**
 1. [FP8 Inference](/ml-execution/quantization/fp8-overview)
 2. [INT4 / AWQ / GPTQ](/ml-execution/quantization/int4-and-awq)
 3. [MXFP4 / NVFP4](/ml-execution/quantization/mxfp4-nvfp4)
 4. [Rotation Quantization](/ml-execution/quantization/rotation-quant)
-5. [On-Device Inference](/applied/serve/on-device)
+5. [Calibration & KV Cache Quantization](/ml-execution/quantization/calibration-kv-quant)
+6. [On-Device Inference](/applied/serve/on-device)
 
 **On-Device runtimes (the four production paths)**
 
-6. [llama.cpp Internals](/edge-ai/on-device/llama-cpp-internals)
-7. [ExecuTorch](/edge-ai/on-device/executorch)
-8. [Core ML & ANE (intro)](/edge-ai/on-device/coreml)
-9. [TFLite & LiteRT](/edge-ai/on-device/tflite)
-10. [WebGPU & WebLLM](/edge-ai/browser/webgpu-webllm)
+7. [llama.cpp Internals](/edge-ai/on-device/llama-cpp-internals)
+8. [ExecuTorch](/edge-ai/on-device/executorch)
+9. [Core ML & ANE (intro)](/edge-ai/on-device/coreml)
+10. [TFLite & LiteRT](/edge-ai/on-device/tflite)
+11. [WebGPU & WebLLM](/edge-ai/browser/webgpu-webllm)
 
 **NPU programming**
 
-11. [Qualcomm Hexagon](/edge-ai/npu/hexagon)
-12. [Apple Neural Engine — deep dive](/edge-ai/npu/apple-ane)
+12. [Qualcomm Hexagon](/edge-ai/npu/hexagon)
+13. [Apple Neural Engine — deep dive](/edge-ai/npu/apple-ane)
 
 **Edge formats + small-model recipes**
 
-13. [GGUF & i-matrix](/edge-ai/edge-quant/gguf-and-imatrix)
-14. [Distillation for Edge](/edge-ai/distillation/small-llms)
-15. [Speculative Decoding](/edge-ai/distillation/speculative-decoding)
+14. [GGUF & i-matrix](/edge-ai/edge-quant/gguf-and-imatrix)
+15. [Distillation for Edge](/edge-ai/distillation/small-llms)
+16. [Speculative Decoding](/edge-ai/distillation/speculative-decoding)
 
 **Multimodal + distributed at the edge**
 
-16. [Whisper.cpp & on-device speech](/edge-ai/multimodal/whisper-cpp)
-17. [Mobile VLMs](/edge-ai/multimodal/mobile-vlm)
-18. [EXO & Swarm Inference](/edge-ai/distributed/exo-swarm)
+17. [Whisper.cpp & on-device speech](/edge-ai/multimodal/whisper-cpp)
+18. [Mobile VLMs](/edge-ai/multimodal/mobile-vlm)
+19. [EXO & Swarm Inference](/edge-ai/distributed/exo-swarm)
 
 The capstone arc here is one of the strongest in Mosaic: three runtimes side-by-side on iOS ([On-Device Runtimes](/edge-ai/on-device)), a fully-offline voice assistant ([Multimodal Edge](/edge-ai/multimodal)), and a 4-device LAN running 70B ([Distributed Edge](/edge-ai/distributed)) — three end-to-end Edge AI artifacts that compose.
 
