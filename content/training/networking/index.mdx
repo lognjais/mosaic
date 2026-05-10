@@ -1,0 +1,67 @@
+---
+title: Networking
+description: The collectives, topology, and tracing layer that distributed training actually runs on. NCCL primitives, ring vs tree, NVLink, hang debugging.
+last_reviewed: 2026-05-10
+---
+# Networking
+
+Distributed training has two mental layers. The upper layer is recipes: data-parallel, tensor-parallel, pipeline-parallel, FSDP, expert-parallel. The lower layer — the one that actually moves bytes between GPUs — is collectives, topology, and tracing. Most engineers can recite the recipes; far fewer can debug a hang at 3 a.m. when one rank goes silent and the rest stall on AllReduce. This module is the lower layer.
+
+The discipline is the same as the kernels half of Mosaic: predict, then verify. Predict the bandwidth from the topology and the message size; verify with NCCL's debug log; reconcile every gap. A senior distributed-training engineer can look at a 16-rank job's NCCL_DEBUG=INFO output and tell you in 30 seconds whether the ring topology is rational, whether PXN is engaged, whether the hang is a shape mismatch or a cgroup OOM. This module builds that fluency.
+
+<ModuleProgress
+  lessons={[
+    { slug: '/training/networking/nccl-collectives', title: 'NCCL & AllReduce Internals', estMin: 18 },
+  ]}
+/>
+
+<Capstone
+  title="Reproduce and debug an NCCL hang on rented 8×H100"
+  pitch="Stand up a multi-node FSDP run on 8×H100, deliberately introduce a hang, and walk through the debugging stack until you can name the failure class."
+  what="A public repo with: a working FSDP training script for a small (~1B) Llama variant, the NCCL_DEBUG=INFO output from a clean run with the ring topology highlighted, a reproducer script that triggers a hang (mismatched shapes / dropped rank / cgroup OOM), and a one-page debugging log capturing the diagnostic sequence (ENV vars set, py-spy stack of each rank, line in NCCL log where the timeline diverged) and the root cause."
+  sota={['NCCL 2.20+', 'PyTorch 2.x FSDP2', 'CUDA 12+', 'Modal / RunPod / Lambda 8×H100', 'NCCL_DEBUG=INFO + NCCL_DEBUG_SUBSYS=COLL,P2P,NET', 'py-spy + gdb for stack traces']}
+  device="colab"
+  time="One focused weekend (~12 h)"
+  level="advanced"
+  steps={[
+    {
+      title: 'Stand up the clean baseline',
+      goal: 'Rent 8×H100 (Modal / RunPod / Lambda / Voltage Park, ~$24/hr × 3 h ≈ $72). Run nanoGPT or a small Llama variant under FSDP2. Capture throughput numbers + a clean NCCL_DEBUG=INFO log.',
+      checkpoint: 'Loss decreases on the first 100 steps. NCCL log shows a sane ring topology over NVSwitch.',
+      trap: 'Forgetting to set NCCL_DEBUG=INFO before launch — the ring topology message is logged at init only, you cannot recover it after the fact.',
+      est: '3 h',
+    },
+    {
+      title: 'Introduce a deterministic hang',
+      goal: 'Pick one failure class: (a) dtype mismatch — cast one rank\'s gradient to bf16 and the rest to fp16; (b) shape mismatch — let rank 0\'s batch include one extra sample; (c) drop a rank — kill rank 3 mid-step. Reproduce reliably.',
+      checkpoint: 'Job hangs reliably within the first 100 steps; NCCL ASYNC_ERROR_HANDLING does not save you.',
+      trap: 'NCCL on recent versions has more aggressive timeout handling; you may see a clean error instead of a hang. Lower NCCL_TIMEOUT_MS to force the hang behaviour.',
+      est: '2 h',
+    },
+    {
+      title: 'Run py-spy on every rank during the hang',
+      goal: 'In a parallel terminal, run `py-spy dump --pid <each_rank_pid>`. Capture the stack of each rank.',
+      checkpoint: 'You can name the line each rank is stuck on. They will not all be on the same line — that is the diagnostic clue.',
+      trap: 'Modal\'s container isolation may block py-spy; use `--native` flag, or run from inside the container with elevated privileges.',
+      est: '1 h',
+    },
+    {
+      title: 'Find the divergence point in the NCCL log',
+      goal: 'Diff the NCCL_DEBUG=INFO output across ranks. Look for the last common collective ID; that is where the timelines diverged.',
+      checkpoint: 'You can point at the line in the NCCL log where one rank issued a different collective than the others.',
+      est: '2 h',
+    },
+    {
+      title: 'Write the postmortem',
+      goal: 'Public repo. Sections: clean baseline (throughput, ring topology), reproducer (deterministic hang command), diagnostic walk (py-spy + NCCL log diff), root cause, fix, prevention (which env var or assert would have caught it earlier).',
+      checkpoint: 'A stranger can clone the repo, run `make hang`, and reproduce the hang within 5 minutes.',
+      est: '4 h',
+    },
+  ]}
+  outcomes={[
+    'A working multi-node FSDP run with a clean NCCL ring topology log',
+    'A deterministic hang reproducer that demonstrates one failure class',
+    'A debugging postmortem that converts "I read about FSDP" → "I have debugged an NCCL hang"',
+    'The Year-1 Atlas-required artifact for distributed training depth',
+  ]}
+/>

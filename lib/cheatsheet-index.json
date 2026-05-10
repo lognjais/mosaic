@@ -588,6 +588,13 @@
     "tldr": "- **Tensor parallel (TP)** splits each individual matmul (and embedding, attention) across multiple GPUs. Each GPU holds a *slice* of every weight matrix; activations get AllReduced after the slice.\n- **Megatron-LM** introduced the canonical TP design (Shoeybi et al., 2019): column-parallel for the first matmul of an MLP, row-parallel for the second, **two AllReduces per transformer layer** (one in attention, one in MLP).\n- TP shards weights *and* compute → memory and FLOPs scale roughly linearly with TP degree. The cost is communication: **AllReduce on the activations** every layer, twice.\n- **TP works best within a single NVLink domain** (one DGX node, ~8 GPUs). Across nodes, comm bandwidth tanks and TP scaling collapses. Production: TP=8 within node, DP / PP across nodes.\n- The 2026 default for training a 70B+ model: TP=8 + FSDP (DP / sharded) + PP=4. This is what TorchTitan, Megatron-Core, NeMo all assume."
   },
   {
+    "slug": "/training/networking/nccl-collectives",
+    "track": "training",
+    "module": "training/networking",
+    "title": "NCCL & AllReduce Internals",
+    "tldr": "- **NCCL is the wire layer of distributed training.** Six primitives: AllReduce, AllGather, ReduceScatter, Broadcast, Reduce, AllToAll. Every parallelism strategy (DP, TP, PP, FSDP, EP) decomposes into one or more of these.\n- **Ring AllReduce is bandwidth-optimal**: each link carries `2(N-1)/N × buffer_size` bytes total. **Tree is latency-optimal**: `log(N)` round-trips. NCCL picks per-message-size with a tunable threshold (`NCCL_ALGO=Ring|Tree|CollNet|NVLS`).\n- **Topology decides everything.** On 8×H100 SXM (DGX), every GPU has 18 NVLink-4 links to NVSwitch at 900 GB/s aggregate. Across nodes, you cross InfiniBand or RoCE at 400 Gb/s per port. **NCCL builds different rings for different topologies and the ring it picks is in `NCCL_DEBUG=INFO`.**\n- **Hangs have three classes**: shape/dtype mismatch (one rank issues a different collective), silent rank loss (cgroup OOM, segfault, network partition), and timeline drift (one rank delayed past the timeout). Each leaves a different fingerprint in the NCCL log.\n- **The five environment variables every distributed engineer sets**: `NCCL_DEBUG=INFO`, `NCCL_DEBUG_SUBSYS=COLL,P2P,NET`, `NCCL_ASYNC_ERROR_HANDLING=1`, `NCCL_TIMEOUT_MS=600000`, and a sane `NCCL_SOCKET_IFNAME` if you have multiple NICs. Without these, debugging is guesswork."
+  },
+  {
     "slug": "/training/optimization/backprop",
     "track": "training",
     "module": "training/optimization",

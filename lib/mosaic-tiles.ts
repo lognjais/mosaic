@@ -140,6 +140,9 @@ export const TILES: Tile[] = [
   { slug: '/training/post-training/dpo',              fallback: '/training/post-training', title: 'DPO / IPO / KTO',         summary: 'Preference optimization without RL — closed-form classification.',        track: 'training', moduleName: 'Post-training', q: 3, r: -2, illustration: 'dpo', available: true },
   { slug: '/training/post-training/grpo-reasoning',   fallback: '/training/post-training', title: 'GRPO & RL Reasoning',     summary: 'DeepSeek-R1\'s recipe: RL on verifiable rewards, no value model.',          track: 'training', moduleName: 'Post-training', q: 4, r: -2, illustration: 'grpo-reasoning', available: true },
 
+  // Module: Networking
+  { slug: '/training/networking/nccl-collectives',    fallback: '/training/networking', title: 'NCCL & AllReduce',         summary: 'Ring vs tree, NVLink topology, the 5 env vars, and the hang debugging playbook.',  track: 'training', moduleName: 'Networking', q: 1, r: -1, illustration: 'placeholder', available: true },
+
   // ════════════════════ LLM ARCHITECTURE (gold) ════════════════════
   // Module: Attention
   { slug: '/llm-architecture/attention/mha',             fallback: '/llm-architecture/attention', title: 'Multi-Head Attention',  summary: 'The original attention mechanism, head by head.',                    track: 'llm-architecture', moduleName: 'Attention', q: -9, r: 1, illustration: 'mha', available: true },
