@@ -1,5 +1,10 @@
 import Link from 'next/link'
 import { TileCluster } from './TileCluster'
+import { TILES } from '@/lib/mosaic-tiles'
+
+const lessonCount = TILES.filter((t) => t.available).length
+const moduleCount = new Set(TILES.map((t) => `${t.track}/${t.moduleName}`)).size
+const trackCount = new Set(TILES.map((t) => t.track)).size
 
 export function Hero() {
   return (
@@ -17,7 +22,7 @@ export function Hero() {
       </p>
 
       <p className="m-hero-sub">
-        Seven tracks. Eighty-eight lessons. Every concept the field actually uses today,
+        {trackCount} tracks. {lessonCount} lessons. Every concept the field actually uses today,
         written like an engineer would explain it to another engineer. Real numbers, runnable
         code, nothing hand-wavy. Each lesson finishes in 15 minutes.
       </p>
@@ -32,7 +37,7 @@ export function Hero() {
       </div>
 
       <div className="m-hero-cue">
-        Seven tracks &nbsp;·&nbsp; Twenty-six modules &nbsp;·&nbsp; Eighty-eight lessons
+        {trackCount} tracks &nbsp;·&nbsp; {moduleCount} modules &nbsp;·&nbsp; {lessonCount} lessons
       </div>
     </section>
   )
