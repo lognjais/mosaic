@@ -6,7 +6,35 @@
       "Bash(awk '/items={\\\\[/,/}\\\\s*$/' /Users/shivya/Documents/maia/mosaic/content/edge-ai/on-device/executorch.mdx)",
       "Bash(awk 'NR>=194 && NR<=240' /Users/shivya/Documents/maia/mosaic/content/edge-ai/on-device/executorch.mdx)",
       "Bash(grep -n '\\\\${')",
-      "Bash(awk 'NR>=194 && NR<=242' /Users/shivya/Documents/maia/mosaic/content/edge-ai/on-device/executorch.mdx)"
+      "Bash(awk 'NR>=194 && NR<=242' /Users/shivya/Documents/maia/mosaic/content/edge-ai/on-device/executorch.mdx)",
+      "Bash(node scripts/verify-mapping.mjs)",
+      "Bash(npx tsc *)",
+      "Bash(node -e ' *)",
+      "Bash(git -c user.name=JAI -c user.email=jvoltci@gmail.com commit -m ' *)",
+      "Bash(grep -v \"^content/[^/]*\\\\.mdx$\")",
+      "Bash(grep -v \"/content/[a-z-]*\\\\.mdx$\")",
+      "Bash(gh run *)",
+      "Bash(curl -sI https://jvoltci.github.io/mosaic/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" https://jvoltci.github.io/mosaic/edge-ai/distributed/exo-swarm/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" https://jvoltci.github.io/mosaic/favorites/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" https://jvoltci.github.io/mosaic/pagefind/pagefind.js)",
+      "Bash(curl -s \"https://jvoltci.github.io/mosaic/training/distributed/tensor-parallel/\")",
+      "Bash(grep -rn '\\\\${moduleSlug}\\\\|\\\\${.*\\\\.slug}\\\\|\\\\${.*Slug}' /Users/shivya/Documents/maia/mosaic --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(git push *)",
+      "Bash(git tag *)",
+      "Read(//Users/shivya/.claude/plans/**)",
+      "Bash(curl -s https://jvoltci.github.io/mosaic/ml-execution/tensors-in-memory/contiguous-vs-non/)",
+      "Bash(grep -nA8 \"^\\\\.m-lesson-accent\" /Users/shivya/Documents/maia/mosaic/app/globals.css)",
+      "Bash(curl -s \"https://jvoltci.github.io/mosaic/ml-execution/tensors-in-memory/contiguous-vs-non/\")",
+      "Bash(curl -sI \"https://jvoltci.github.io/mosaic/_next/static/css/\")",
+      "Bash(curl -s \"https://jvoltci.github.io/mosaic/\")",
+      "Bash(curl -s \"https://jvoltci.github.io/mosaic/_next/static/css/9f81937be993b54e.css\")",
+      "Bash(curl -s \"https://jvoltci.github.io/mosaic/_next/static/css/8d8fed160e59e1e3.css\")",
+      "Bash(git -C /Users/shivya/Documents/maia/mosaic log --oneline -20)"
+    ],
+    "additionalDirectories": [
+      "/Users/shivya/.claude/plans",
+      "/tmp"
     ]
   }
 }
