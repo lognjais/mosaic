@@ -69,14 +69,15 @@
  *   Do NOT roll work forward — rolled work compounds and kills the sprint by W6.
  *
  * Brutal-honesty notes (from research + Atlas's own posture):
- *   - Funnel & geography are the biggest gaps, bigger than content. Varanasi-
- *     based + <5 mo runway means: (a) zero local AI scene, (b) most US-onsite
- *     serving-infra roles will not close in time, (c) even Indian AI Tier A
- *     (NVIDIA India / Google DeepMind India / Sarvam / Krutrim / AI4Bharat)
- *     is concentrated in Bangalore + Hyderabad + Gurgaon — onsite is
- *     functionally inaccessible without a relocation. W0 includes an explicit
- *     "who will actually talk to me + can I be where they want me to be"
- *     audit. The Bangalore-relocation question is in scope; do not defer it.
+ *   - Funnel & geography are real gaps. Varanasi-based + <5 mo runway means:
+ *     (a) zero local AI scene, (b) most US-onsite serving-infra roles will
+ *     not close in time. Indian AI Tier A (NVIDIA India / Google DeepMind
+ *     India / Sarvam / Krutrim / AI4Bharat) clusters in Bangalore + Hyderabad
+ *     + Gurgaon, but traveling for a 1–2 day onsite is easy, so the interview
+ *     funnel stays mostly intact. Relocation is a question that only triggers
+ *     AT offer time, not before. W0-a3 audit verifies (1) does the company
+ *     hire from India, (2) is the team open to India-remote OR willing to
+ *     onboard you remote with eventual relocation.
  *   - Mini-vLLM is the single highest-ROI portfolio artifact for this lane.
  *     A landed merge PR in vLLM/SGLang beats a half-built clone.
  *   - "OpenAI-compatible API" is table stakes. Without it, no recruiter cares.
@@ -656,20 +657,18 @@ export const PATH: Phase[] = [
           {
             id: 'n-w0-a3',
             track: 'apply',
-            title: 'Funnel + location reality-check — who will talk to a Varanasi candidate, and where do they need you',
+            title: 'Funnel reality-check — who will talk to a candidate based in India',
             body:
-              'For every Tier-A and Tier-B company in your target list, verify THREE things by reading careers page + LinkedIn employees:\n' +
+              'Travel-for-interview is fine — you can fly to Bangalore / Hyderabad / Gurgaon for a 1–2 day onsite from Varanasi without it being a blocker. The audit is about who runs the *process* willingly with an India-based candidate, NOT about whether you can be physically there for the onsite.\n' +
+              'For every Tier-A and Tier-B company in your target list, verify by reading careers page + LinkedIn employees:\n' +
               '  (1) Does the company currently employ engineers based in India? (LinkedIn search: company + India.)\n' +
-              '  (2) Is the specific team you would join hiring remote/India OR will accept India-remote with occasional onsite? (Many "remote" listings exclude India in fine print.)\n' +
-              '  (3) If onsite required: which city? Tier A Indian companies are 95% Bangalore + Hyderabad + Gurgaon — none in Varanasi.\n' +
-              'Then decide the Bangalore question explicitly. Three honest options:\n' +
-              '  (A) Stay in Varanasi → restrict funnel to truly-India-remote roles only. Realistic Tier A drops by ~70%.\n' +
-              '  (B) Relocate to Bangalore now (1-week move) → full Tier A onsite + remote access. Costs runway but unlocks the funnel. Recommended IF you can absorb 1.5–2 mo rent upfront.\n' +
-              '  (C) Stay in Varanasi for the 12-week sprint; relocate to Bangalore at month 4 once you have screen interest. Compromise but rational. Recommended if cash is tight.\n' +
-              'If ≥18 of the 25 companies fail check (2), the funnel is structurally broken regardless of (A)/(B)/(C) — stop and re-tier before W1.',
+              '  (2) Is the specific team open to India-remote OR willing to onboard you remote with a relocation requirement that comes AFTER offer (not before)?\n' +
+              '  (3) For Tier C (visa-sponsoring): does the company sponsor from India, and what is the typical lead time? Anything > 4 months is structurally too slow for your runway — flag those for follow-up after primary funnel converts.\n' +
+              'Relocation is a downstream decision, not a W0 decision. If you get a Bangalore-onsite offer, you decide then with the actual comp number in hand — and the move is a 1-week logistics problem, not a sprint blocker.\n' +
+              'If ≥18 of the 25 companies fail check (2), the funnel is structurally broken regardless of where you live — stop and re-tier before W1.',
             verify:
-              'docs/funnel-audit.md committed with per-company rows: india_employees(y/n) · india_remote_role_open(y/n) · onsite_city · realistic_for_my_location(y/n). At least 10 rows green on "realistic." Plus a docs/location-decision.md committing to A/B/C with a budget number.',
-            hours: '2.5h',
+              'docs/funnel-audit.md committed with per-company rows: india_employees(y/n) · india_remote_role_open(y/n) · onsite_required_pre_offer(y/n) · realistic(y/n). At least 10 rows green on "realistic."',
+            hours: '2h',
           },
           {
             id: 'n-w0-a4',
