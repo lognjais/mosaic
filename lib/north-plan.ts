@@ -6,7 +6,8 @@
  *
  *   "What do I build, read, ship, and apply this week so that by W12 I have a
  *    portfolio dense enough to earn ≥30% screen-rate from teams that will
- *    actually talk to a Hyderabad-based candidate for an LLM
+ *    actually talk to a Varanasi-based candidate (no local AI scene; nearest
+ *    hubs are Bangalore / Hyderabad / Gurgaon ~1500 km away) for an LLM
  *    Infrastructure / Inference Engineer role?"
  *
  * Mission:
@@ -68,10 +69,14 @@
  *   Do NOT roll work forward — rolled work compounds and kills the sprint by W6.
  *
  * Brutal-honesty notes (from research + Atlas's own posture):
- *   - Funnel & geography are bigger gaps than content. Hyderabad-based +
- *     <5 mo runway means most US-onsite serving-infra roles will not close in
- *     time. W0 includes an explicit "who will actually talk to me" audit
- *     against your 25-name tiered list — without that, applications are theatre.
+ *   - Funnel & geography are the biggest gaps, bigger than content. Varanasi-
+ *     based + <5 mo runway means: (a) zero local AI scene, (b) most US-onsite
+ *     serving-infra roles will not close in time, (c) even Indian AI Tier A
+ *     (NVIDIA India / Google DeepMind India / Sarvam / Krutrim / AI4Bharat)
+ *     is concentrated in Bangalore + Hyderabad + Gurgaon — onsite is
+ *     functionally inaccessible without a relocation. W0 includes an explicit
+ *     "who will actually talk to me + can I be where they want me to be"
+ *     audit. The Bangalore-relocation question is in scope; do not defer it.
  *   - Mini-vLLM is the single highest-ROI portfolio artifact for this lane.
  *     A landed merge PR in vLLM/SGLang beats a half-built clone.
  *   - "OpenAI-compatible API" is table stakes. Without it, no recruiter cares.
@@ -651,15 +656,20 @@ export const PATH: Phase[] = [
           {
             id: 'n-w0-a3',
             track: 'apply',
-            title: 'Funnel reality-check — who will actually talk to a Hyderabad candidate',
+            title: 'Funnel + location reality-check — who will talk to a Varanasi candidate, and where do they need you',
             body:
-              'For every Tier-A and Tier-B company in your target list, verify TWO things by reading their careers page + LinkedIn employees:\n' +
+              'For every Tier-A and Tier-B company in your target list, verify THREE things by reading careers page + LinkedIn employees:\n' +
               '  (1) Does the company currently employ engineers based in India? (LinkedIn search: company + India.)\n' +
-              '  (2) Is the specific team you would join hiring remote/India? (Many "remote" listings exclude India in fine print.)\n' +
-              'If ≥18 of the 25 companies fail BOTH checks, the funnel is structurally broken — stop and re-tier before W1. The plan only works if ≥10 companies will genuinely consider you. This task is the cheapest possible reality check, do it before sinking 240 hours.',
+              '  (2) Is the specific team you would join hiring remote/India OR will accept India-remote with occasional onsite? (Many "remote" listings exclude India in fine print.)\n' +
+              '  (3) If onsite required: which city? Tier A Indian companies are 95% Bangalore + Hyderabad + Gurgaon — none in Varanasi.\n' +
+              'Then decide the Bangalore question explicitly. Three honest options:\n' +
+              '  (A) Stay in Varanasi → restrict funnel to truly-India-remote roles only. Realistic Tier A drops by ~70%.\n' +
+              '  (B) Relocate to Bangalore now (1-week move) → full Tier A onsite + remote access. Costs runway but unlocks the funnel. Recommended IF you can absorb 1.5–2 mo rent upfront.\n' +
+              '  (C) Stay in Varanasi for the 12-week sprint; relocate to Bangalore at month 4 once you have screen interest. Compromise but rational. Recommended if cash is tight.\n' +
+              'If ≥18 of the 25 companies fail check (2), the funnel is structurally broken regardless of (A)/(B)/(C) — stop and re-tier before W1.',
             verify:
-              'docs/funnel-audit.md committed with per-company rows: india_employees(y/n) · india_remote_role_currently_open(y/n) · realistic(y/n). At least 10 rows green on "realistic."',
-            hours: '2h',
+              'docs/funnel-audit.md committed with per-company rows: india_employees(y/n) · india_remote_role_open(y/n) · onsite_city · realistic_for_my_location(y/n). At least 10 rows green on "realistic." Plus a docs/location-decision.md committing to A/B/C with a budget number.',
+            hours: '2.5h',
           },
           {
             id: 'n-w0-a4',
@@ -2084,10 +2094,11 @@ export const PATH: Phase[] = [
           {
             id: 'n-w12-p2',
             track: 'prep',
-            title: 'Next-90-day plan',
+            title: 'Next-90-day plan + DSA surge contingency',
             body:
-              'You either have an offer (now month 1 of new role: 90-day plan for ramping). Or you do not (now month 4 of search: which assumptions failed, what changes). Either way: a written plan beats default-mode coasting.',
-            verify: 'docs/next-90.md committed',
+              'You either have an offer (now month 1 of new role: 90-day plan for ramping). Or you do not (now month 4 of search: which assumptions failed, what changes). Either way: a written plan beats default-mode coasting.\n' +
+              'DSA NOTE: this sprint deliberately under-prepares DSA (~40 mediums total, ~22h) because Tier A/B target companies value portfolio over Leetcode. IF month 4+ surfaces Tier C interest (frontier-lab phone screens — OpenAI/Anthropic/DeepMind), schedule a 2-week DSA surge BEFORE onsite: ~50 more mediums, ~10 hards, 2 mock interviews/wk. Tier C onsites assume 200-300 problems; cramming after a phone screen is the realistic path.',
+            verify: 'docs/next-90.md committed; if applicable, DSA-surge plan documented as a contingency block',
             hours: '1.5h',
           },
         ],
