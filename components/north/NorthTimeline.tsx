@@ -9,11 +9,13 @@ import {
   RESOURCE_KIND_LABEL,
   STREAM_LABELS,
   allTasks,
+  isDenseWeek,
   maxGlobalWeek,
   periodAtGlobalWeek,
   periodLabel,
   periodSpan,
   totalGlobalWeeks,
+  weekHours,
   type HalfLife,
   type Phase,
   type Resource,
@@ -91,10 +93,26 @@ export function NorthTimeline() {
     toggle,
     setNote,
     setCurrentGlobalWeek,
+    setStartDate,
     reset,
     exportJson,
     importJson,
   } = useNorthProgress()
+
+  // Scheduled-vs-current cue. If startDate is set, the "expected" week is
+  // floor((today - startDate) / 7 days). Compare against currentGlobalWeek
+  // (the user's actual position) to surface drift. clamp to [0, MAX].
+  const scheduledG = useMemo<number | null>(() => {
+    if (!state.startDate) return null
+    const start = new Date(state.startDate + 'T00:00:00')
+    if (Number.isNaN(start.getTime())) return null
+    const now = new Date()
+    const days = Math.floor((now.getTime() - start.getTime()) / 86_400_000)
+    const w = Math.floor(days / 7)
+    if (w < 0) return 0
+    if (w > MAX_GLOBAL_WEEK) return MAX_GLOBAL_WEEK
+    return w
+  }, [state.startDate])
 
   const rows = useMemo(buildRows, [])
   const all = useMemo(() => allTasks(), [])
@@ -193,6 +211,50 @@ export function NorthTimeline() {
                 style={{ '--phase-color': visibleCtx.phase.color } as React.CSSProperties}
               >
                 {visibleCtx.phase.title.replace('Phase ', 'P')}
+              </span>
+            )}
+            <span className="m-atlas-stat-sep">·</span>
+            {scheduledG === null ? (
+              <button
+                type="button"
+                className="m-atlas-link"
+                title="Anchor W0 to today; future visits will show scheduled-vs-current drift"
+                onClick={() => {
+                  const today = new Date().toISOString().slice(0, 10)
+                  if (confirm(`Mark today (${today}) as the W0 start? You can clear this later via Reset.`)) {
+                    setStartDate(today)
+                  }
+                }}
+              >
+                Mark W0 = today
+              </button>
+            ) : (
+              <span
+                className={
+                  'm-atlas-stat m-atlas-stat-scheduled' +
+                  (scheduledG > state.currentGlobalWeek
+                    ? ' m-atlas-stat-scheduled-behind'
+                    : scheduledG < state.currentGlobalWeek
+                      ? ' m-atlas-stat-scheduled-ahead'
+                      : '')
+                }
+                title={
+                  scheduledG > state.currentGlobalWeek
+                    ? `Behind schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
+                    : scheduledG < state.currentGlobalWeek
+                      ? `Ahead of schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
+                      : `On schedule: W${scheduledG}`
+                }
+              >
+                scheduled <strong>W{scheduledG}</strong>
+                {scheduledG !== state.currentGlobalWeek && (
+                  <span className="m-atlas-stat-scheduled-delta">
+                    {' '}
+                    ({scheduledG > state.currentGlobalWeek
+                      ? `+${scheduledG - state.currentGlobalWeek} behind`
+                      : `${state.currentGlobalWeek - scheduledG} ahead`})
+                  </span>
+                )}
               </span>
             )}
             <span className="m-atlas-stat-sep">·</span>
@@ -403,6 +465,14 @@ function TimelineRow({
   const phaseShort = phase.title.replace('Phase ', 'P').replace(/ — .*/, '')
   const phaseTail = phase.title.replace(/^Phase \d+ — /, '')
 
+  // Hour-load chip + DENSE badge. Sum derives from task.hours strings; the
+  // dense flag fires above DENSE_WEEK_THRESHOLD_HOURS (22h). See north-plan.ts.
+  const hours = weekHours(week)
+  const dense = isDenseWeek(week)
+  const hoursLabel = hours > 0
+    ? (hours % 1 === 0 ? `≈${hours}h` : `≈${hours.toFixed(1)}h`)
+    : null
+
   return (
     <div
       ref={registerRef}
@@ -441,6 +511,19 @@ function TimelineRow({
             <span className="m-atlas-tl-period-progress">
               {' '}· {weekInPeriod}/{periodWeeks}
             </span>
+          </span>
+        )}
+        {hoursLabel && (
+          <span
+            className={'m-atlas-tl-hours' + (dense ? ' m-atlas-tl-hours-dense' : '')}
+            title={dense ? `~${hours.toFixed(1)}h — dense week, expect to invoke the Wednesday-drop rule` : `~${hours.toFixed(1)}h scheduled`}
+          >
+            {hoursLabel}
+          </span>
+        )}
+        {dense && (
+          <span className="m-atlas-tl-dense-tag" title="Dense week — see context for which task to drop if you slip">
+            DENSE
           </span>
         )}
         {isPeriodStart && periodTasks.length > 0 && (

@@ -4,21 +4,48 @@
  * Atlas is the multi-year arc. North is the 90-day shipping plan that sits on
  * top of it and answers one question:
  *
- *   "What do I build, read, ship, and apply this week so that by W12 I am
- *    a credible candidate for an LLM Infrastructure / Inference Engineer role?"
+ *   "What do I build, read, ship, and apply this week so that by W12 I have a
+ *    portfolio dense enough to earn ≥30% screen-rate from teams that will
+ *    actually talk to a Hyderabad-based candidate for an LLM
+ *    Infrastructure / Inference Engineer role?"
  *
  * Mission:
  *   Senior SWE  →  LLM Inference / AI Systems Engineer in ~12 weeks.
  *
  * Strategy:
- *   1. Ship four flagship portfolio projects, each with measured numbers.
- *      P1: mini-vLLM         — paged KV cache, continuous batching, OpenAI API
- *      P2: ai-gateway        — model router, cost/latency-aware, OTel, cache
- *      P3: rag-prod          — hybrid retrieval, reranker, eval harness, cites
- *      P4: dist-inference    — TP or multi-worker replica serving, scaling bench
+ *   1. Ship THREE deep flagship portfolio projects, each with measured numbers.
+ *      P1: mini-vLLM         — paged KV cache, continuous batching, OpenAI API,
+ *                              one accelerator (quant OR specdec), in-loop NCU
+ *                              profiling baked in from W2 onward.
+ *      P2: ai-gateway        — model router, cost/latency-aware, OTel, cache,
+ *                              rate limiting, multi-tenant safety. Two weeks
+ *                              (W6 core + W7 hardening), not one.
+ *      P3: dist-inference    — TP or multi-worker replica serving, scaling bench.
+ *      (Applied AI side-quest: a 2-day RAG demo lives inside W7 to add breadth,
+ *       NOT as a flagship. RAG is Applied-AI signal, not Inference-Engineer
+ *       signal, and a hand-wavy flagship dilutes the lane message.)
  *   2. Land ≥1 merged OSS PR in a real serving project (vLLM / SGLang / TGI / llama.cpp).
  *   3. Build a system-design library of 5 one-pagers for interviews.
  *   4. Open 25+ targeted outreach threads. Convert.
+ *
+ * Compute posture — FREE FIRST, paid only for headline numbers:
+ *   - Kaggle Notebooks  — 30h/wk on dual T4 (32 GB total via 2× T4). The default
+ *                         dev environment for W0–W5. Llama-3-8B fp16 is tight on
+ *                         16 GB but fine in int8 / on 4-bit; full fp16 testing
+ *                         can use the dual-T4 split or shrink to Llama-3-1B / 3-3B.
+ *   - Colab free        — T4 sometimes, time-capped. Fallback only.
+ *   - Lightning Studios — limited free credits; useful for one-off A100 runs.
+ *   - PAID (Modal/RunPod) — H100/A100 only for the FIVE headline runs that
+ *                         end up in BENCHMARKS.md / on your resume:
+ *                           (a) W2 baseline decode NCU snapshot (~1h)
+ *                           (b) W4 continuous-batching scheduler profile (~1h)
+ *                           (c) W7 ai-gateway 100-RPS load test (~1h, optional —
+ *                               can run against mocked providers locally if budget
+ *                               is tight)
+ *                           (d) W8 Triton matmul NCU report (~1.5h)
+ *                           (e) W9 dist-inference scaling chart (~2h)
+ *                         Budget cap: ~$50–$150 total over 12wk. Set a HARD
+ *                         monthly cap in Modal's dashboard on day one.
  *
  * Tracks (mirror Atlas):
  *   read   — papers, blogs, docs that earn the right to build
@@ -34,15 +61,32 @@
  *   fast    — specific SOTA papers (Medusa, EAGLE), exact framework APIs,
  *             current company hiring guides. ~1y. VERIFY before action.
  *
+ * Slack & buffer — what to do when a week slips:
+ *   Every phase is one week with zero buffer. That is fragile. Rule: if you are
+ *   ≥2 days behind on a Wednesday, DROP the lowest-priority prep task (Leetcode
+ *   that week, OR the optional build) and protect the read+build+apply spine.
+ *   Do NOT roll work forward — rolled work compounds and kills the sprint by W6.
+ *
  * Brutal-honesty notes (from research + Atlas's own posture):
+ *   - Funnel & geography are bigger gaps than content. Hyderabad-based +
+ *     <5 mo runway means most US-onsite serving-infra roles will not close in
+ *     time. W0 includes an explicit "who will actually talk to me" audit
+ *     against your 25-name tiered list — without that, applications are theatre.
  *   - Mini-vLLM is the single highest-ROI portfolio artifact for this lane.
  *     A landed merge PR in vLLM/SGLang beats a half-built clone.
  *   - "OpenAI-compatible API" is table stakes. Without it, no recruiter cares.
  *   - Every project must have a BENCHMARKS.md with hardware, batch, dtype,
  *     and three numbers: TTFT, ITL/throughput, memory. No numbers = no project.
- *   - Cold applications without referrals fail. Outreach starts W6, not W11.
+ *   - Cold applications without referrals fail. Build-in-public starts W0
+ *     (weekly post); first cold DMs go out W4; surge in W11. By W12 the
+ *     funnel should be inbound-augmented, not pure cold-outbound.
+ *   - GPU intuition is threaded through W2/W4 (NCU profile of the scheduler
+ *     iteration), not bottled in W8. One Triton week is necessary, not enough.
  *   - North is not Atlas-lite. Atlas covers bedrock (math, OS, arch, compilers).
  *     North trusts that and runs flat-out on infra/serving for 12 weeks.
+ *   - Success metric for W12 is NOT "have an offer." It is "≥30% screen-rate
+ *     across ≥45 applications + ≥3 referrer warm-intros + ≥1 onsite scheduled."
+ *     Offers are downstream and partially out of your control.
  */
 
 // Reuse all the Atlas types and metadata so North inherits the same shape
@@ -427,6 +471,59 @@ const R = {
     halfLife: 'medium',
   } as Resource,
 
+  // ── Math refresh (durable) ───────────────────────────────────────────
+  three_blue_one_brown_linalg: {
+    kind: 'video',
+    title: '3Blue1Brown — Essence of Linear Algebra',
+    url: 'https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab',
+    hours: '3h',
+    why: 'Visual intuition for matrices, eigenvalues, SVD, transformations. Watch at 1.5×; pair with your Math4ML notes. The lens you need for attention/projection math.',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+  math4ml_coursera: {
+    kind: 'course',
+    title: 'Mathematics for ML — Imperial / Coursera (your notes)',
+    url: 'https://www.coursera.org/specializations/mathematics-machine-learning',
+    why: 'You already completed this. Use as a re-orientation index, not a re-take. Diagnostic + targeted lecture rewatches only.',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+
+  // ── Compute (free-first) ─────────────────────────────────────────────
+  kaggle_gpu: {
+    kind: 'docs',
+    title: 'Kaggle Notebooks — free dual-T4 GPU, 30h/wk',
+    url: 'https://www.kaggle.com/docs/notebooks#gpu-and-tpu-quota',
+    why: 'Default dev environment for W0–W5. 2× T4 = 32 GB total HBM. Verify your phone number to enable GPU. Cannot serve a public HTTP endpoint from a notebook — use it for engine dev + offline benchmarks, not the FastAPI server.',
+    tier: 1,
+    halfLife: 'medium',
+  } as Resource,
+  colab_free: {
+    kind: 'docs',
+    title: 'Google Colab — free tier (T4, time-capped)',
+    url: 'https://research.google.com/colaboratory/faq.html',
+    why: 'Fallback when Kaggle quota is exhausted. T4 only, idle-timeouts, no SSH. Useful for one-off paper repro and reading-track notebooks.',
+    tier: 2,
+    halfLife: 'medium',
+  } as Resource,
+  lightning_studio: {
+    kind: 'docs',
+    title: 'Lightning AI Studios — free credits',
+    url: 'https://lightning.ai/pricing',
+    why: 'Persistent studio environment with limited free GPU credits. Good for one-off A100 reproductions when Kaggle is not enough.',
+    tier: 2,
+    halfLife: 'fast',
+  } as Resource,
+  modal_docs: {
+    kind: 'docs',
+    title: 'Modal — serverless GPU (PAID, headline runs only)',
+    url: 'https://modal.com/docs',
+    why: 'Spend the $50–$150 budget here on H100/A100 for the FOUR runs that go in BENCHMARKS.md (W2, W4, W8, W9). Set a hard monthly cap in the dashboard.',
+    tier: 1,
+    halfLife: 'medium',
+  } as Resource,
+
   // ── Mosaic internal pointers ─────────────────────────────────────────
   mosaic_ml_execution: {
     kind: 'mosaic',
@@ -468,7 +565,7 @@ export const PATH: Phase[] = [
     year: 0,
     cadence: 'week',
     color: 'var(--m-track-foundations)',
-    artifact: 'north-portfolio meta-repo + 15-name target company list + cloud GPU access',
+    artifact: 'north-portfolio meta-repo + 25-name tiered target list + Kaggle+Modal GPU access + funnel audit + public-presence kickoff',
     context:
       'No content yet — just the rails for a 90-day shipping sprint. If setup spills past the week, rip out the friction (different cloud, different account, simpler stack) before starting W1. The mistake is treating W0 as "preparing to start"; the right frame is "everything I need to run flat-out for 12 weeks is committed to git by Friday."',
     weeks: [
@@ -500,19 +597,21 @@ export const PATH: Phase[] = [
           {
             id: 'n-w0-b1',
             track: 'build',
-            title: 'Cloud GPU working — Modal or RunPod, one H100 or A100',
+            title: 'GPU pipeline — Kaggle (free, default) + Modal (paid, headlines)',
             body:
-              'Sign up, attach billing, run `nvidia-smi` from a container. The point is to verify you can spin a GPU on demand. Modal is the lowest-friction default; RunPod is the cheapest for sustained runs.',
-            verify: '`modal run nvidia-smi` or equivalent prints H100/A100; cost ceiling alarm set',
-            hours: '1h',
+              'Two environments, both working by Friday. (1) Kaggle: enable GPU on a notebook, run `!nvidia-smi`, confirm 2× T4. This is your daily dev box for W0–W5. (2) Modal: sign up, attach billing, set monthly cap = $40, run `modal run nvidia-smi` on an H100. This is reserved for the four headline benchmark runs (W2, W4, W8, W9). Do NOT use Modal for daily dev — you will burn the budget.',
+            verify:
+              'Kaggle notebook prints `Tesla T4` ×2 and runs HF `from_pretrained` on a 1B model end-to-end; Modal H100 boots and prints H100; Modal dashboard shows hard cap $40/mo set',
+            hours: '1.5h',
+            resources: [R.kaggle_gpu, R.modal_docs, R.colab_free],
           },
           {
             id: 'n-w0-b2',
             track: 'build',
             title: 'north-portfolio meta-repo with four project skeletons',
             body:
-              'Single GitHub org (or your account). One umbrella README that links the four flagship projects: mini-vllm, ai-gateway, rag-prod, dist-inference. Each project gets its own repo with a README stub stating goal + verify + bench plan. No code yet.',
-            verify: 'Five public repos exist; umbrella README links them; each child README has a Verify + Bench section',
+              'Single GitHub org (or your account). One umbrella README that links the THREE flagship projects: mini-vllm, ai-gateway, dist-inference. Each project gets its own repo with a README stub stating goal + verify + bench plan. No code yet. (mini-rag-demo is created later inside W7 as a side-quest; do NOT create it now or it becomes psychological scope creep.)',
+            verify: 'Four public repos exist (umbrella + 3 flagships); umbrella README links them; each child README has a Verify + Bench section',
             hours: '1.5h',
           },
           {
@@ -537,11 +636,40 @@ export const PATH: Phase[] = [
           {
             id: 'n-w0-a2',
             track: 'apply',
-            title: 'Target list — 15 companies, 10 OSS PR candidates',
+            title: 'Target list — 25 companies, tiered by who-can-actually-hire-you',
             body:
-              'Companies: split into 5 frontier-lab (OAI/Anthropic/DeepMind/xAI/Mistral), 5 serving-infra (Together/Fireworks/Anyscale/Modal/Replicate/Baseten), 5 product (Cursor/Vercel/Linear/Notion/Perplexity). For each: role title, current openings URL, referrer candidate. OSS: 10 "good first issue" / "help wanted" tickets across vLLM/SGLang/TGI/llama.cpp.',
-            verify: 'docs/targets.md committed with 15 companies + 10 issue URLs',
+              'Re-tier from "dream list" to "honest funnel." Four tiers:\n' +
+              '  Tier A (India-onsite or India-remote-friendly): NVIDIA India, Google DeepMind India, Microsoft AI India, Hugging Face, AI4Bharat, Sarvam, Krutrim, OLA Krutrim, Fractal, plus any global serving-infra startup that explicitly hires India-remote.\n' +
+              '  Tier B (global remote-first, no visa needed): Replicate, OpenPipe, Modal (verify), Baseten (verify), smaller AI-infra startups that hire globally.\n' +
+              '  Tier C (visa-sponsoring, long lead): Together, Anyscale, Fireworks, frontier labs. Apply but treat as 6–12 mo conversion, not 3 mo.\n' +
+              '  Tier D (aspirational stretches): keep to ≤3 names. These are the "shoot your shot" plays, not the spine of the funnel.\n' +
+              'Goal split: 8 A, 8 B, 6 C, 3 D. For each: role title, current openings URL, named referrer candidate (LinkedIn URL). OSS: 10 "good first issue" tickets across vLLM/SGLang/TGI/llama.cpp.',
+            verify:
+              'docs/targets.md committed with 25 companies tiered A/B/C/D, named referrer per row, OSS shortlist of 10 issues',
+            hours: '3h',
+          },
+          {
+            id: 'n-w0-a3',
+            track: 'apply',
+            title: 'Funnel reality-check — who will actually talk to a Hyderabad candidate',
+            body:
+              'For every Tier-A and Tier-B company in your target list, verify TWO things by reading their careers page + LinkedIn employees:\n' +
+              '  (1) Does the company currently employ engineers based in India? (LinkedIn search: company + India.)\n' +
+              '  (2) Is the specific team you would join hiring remote/India? (Many "remote" listings exclude India in fine print.)\n' +
+              'If ≥18 of the 25 companies fail BOTH checks, the funnel is structurally broken — stop and re-tier before W1. The plan only works if ≥10 companies will genuinely consider you. This task is the cheapest possible reality check, do it before sinking 240 hours.',
+            verify:
+              'docs/funnel-audit.md committed with per-company rows: india_employees(y/n) · india_remote_role_currently_open(y/n) · realistic(y/n). At least 10 rows green on "realistic."',
             hours: '2h',
+          },
+          {
+            id: 'n-w0-a4',
+            track: 'apply',
+            title: 'Public-presence kickoff — Twitter/LinkedIn build-in-public, day 1',
+            body:
+              'Warm intros come from being visible, not from cold DMs. Open a Twitter/X account if you don\'t have one. Write the pinned tweet: "Senior SWE, 6 yrs, spending the next 12 weeks rebuilding the LLM-serving stack from first principles. Public log here." Same paragraph on LinkedIn. Commit to ONE public post per week (Friday) for the rest of the sprint — short, factual, what you learned + a number + a link. This is the single highest-ROI funnel change. Inbound from 1 viral thread > 50 cold DMs.',
+            verify:
+              'Twitter/X account live with pinned post; LinkedIn updated to match; Friday weekly-post slot on calendar for W1–W12',
+            hours: '1h',
           },
           {
             id: 'n-w0-p1',
@@ -557,7 +685,7 @@ export const PATH: Phase[] = [
             track: 'prep',
             title: 'System-design notebook — one Obsidian/Notion file per question',
             body:
-              'Pre-create 5 empty system-design pages, one per interview question you will study: (1) inference service, (2) AI gateway, (3) production RAG, (4) distributed batch inference, (5) embeddings serving. You will fill these across W4/W6/W7/W9/W11.',
+              'Pre-create 5 empty system-design pages, one per interview question you will study: (1) inference service, (2) AI gateway, (3) multi-tenant AI platform, (4) distributed batch inference, (5) embeddings + vector search at scale. You will fill these across W4/W6/W7/W9/W10.',
             verify: 'Five empty pages exist with the same template (problem / constraints / arch / tradeoffs / numbers)',
             hours: '30m',
           },
@@ -569,6 +697,17 @@ export const PATH: Phase[] = [
               'The Living Layer (see disclosure above). 30 min/wk to skim. You cannot read every paper; you can read these four channels.',
             verify: 'RSS / email subs active; first issues skimmed',
             hours: '30m',
+          },
+          {
+            id: 'n-w0-p4',
+            track: 'prep',
+            title: 'Math diagnostic + targeted refresh (linalg)',
+            body:
+              'You completed Math4ML in 2023 but the muscle has atrophied. Run a 30-min diagnostic: by hand on paper, (a) derive softmax\'s Jacobian, (b) compute the FLOPs of a (B, S, D) × (D, D) matmul, (c) explain why attention is O(S²·D) memory-bound at decode time, (d) write the SVD of a 3×3 matrix you make up. If you stall on ≥2 of 4, watch 3Blue1Brown Essence of Linear Algebra (~3h) at 1.5× this week. The goal is not mastery; it is making sure W2/W4/W8 roofline reasoning is not blocked by rust. Defer probability/stats refresh to W1.',
+            verify:
+              'docs/math-diagnostic.md committed with the four answers + a self-rating (1-5) on each; 3B1B watched if rating < 3 on any',
+            hours: '2h',
+            resources: [R.three_blue_one_brown_linalg, R.math4ml_coursera],
           },
         ],
         reading: [R.weng_inference, R.kipperly_speed, R.vllm_repo, R.openai_api_ref],
@@ -647,11 +786,11 @@ export const PATH: Phase[] = [
           {
             id: 'n-w1-a1',
             track: 'apply',
-            title: 'mini-vllm README — "What I built this week" section',
+            title: 'mini-vllm README + first weekly public post',
             body:
-              'A README that is not aspirational. It says: this week I built X, here are the numbers, here is what I learned about the prefill/decode asymmetry, here is what is next. Plain language. No emojis.',
-            verify: 'README pushed to mini-vllm repo; week-1 section ≤ 200 words with the profile numbers inline',
-            hours: '1h',
+              'A README that is not aspirational. It says: this week I built X, here are the numbers, here is what I learned about the prefill/decode asymmetry, here is what is next. Plain language. No emojis. PUBLISH: paste the same 200 words as a Twitter/X thread + LinkedIn post Friday. This is the first execution of the W0-a4 build-in-public commitment. The thread should hit one specific number (e.g., "decode at batch=1 is ~94% HBM-bound; here is the math") plus a repo link.',
+            verify: 'README pushed; Twitter/X thread + LinkedIn post live; both link the repo',
+            hours: '1.5h',
           },
           {
             id: 'n-w1-p1',
@@ -671,6 +810,16 @@ export const PATH: Phase[] = [
             verify: '4 mediums logged; one of them solved in <25 min',
             hours: '2h',
             resources: [R.neetcode],
+          },
+          {
+            id: 'n-w1-p3',
+            track: 'prep',
+            title: 'Math refresh — softmax, temperature, sampling, entropy',
+            body:
+              'Two hours, paper-and-pen. Derive: (a) softmax(z/T) and what temperature does to the entropy of the distribution, (b) top-k and top-p sampling as restrictions of the softmax, (c) cross-entropy loss vs negative log-likelihood, (d) why argmax = greedy decoding and how nucleus sampling diverges. The mini-vllm generate loop you just wrote uses all four. If you cannot derive them, you do not understand your own code.',
+            verify: 'docs/math-w1.md with the four derivations; cross-check by varying T and top_p in mini-vllm and predicting the entropy change before measuring',
+            hours: '2h',
+            resources: [R.math4ml_coursera],
           },
         ],
         reading: [R.weng_inference, R.pagedattention, R.hf_generate, R.kipperly_speed],
@@ -757,13 +906,24 @@ export const PATH: Phase[] = [
             hours: '3h',
           },
           {
+            id: 'n-w2-b4',
+            track: 'build',
+            title: 'First NCU snapshot — profile the decode forward pass',
+            body:
+              'One Modal H100 hour (paid). Run `ncu --set roofline --target-processes all python bench_decode.py` on Llama-3-8B at batch=1, seq=512. Capture: arithmetic intensity, HBM throughput, achieved % of peak. You will not understand every metric yet — that is fine. Commit the report. You will reread it after W8 and the numbers will mean something different. The goal here is to make NCU not-scary by W4.',
+            verify:
+              'docs/ncu-w2.md committed with the three numbers + one-paragraph "what I think I saw" written without looking it up',
+            hours: '2h',
+            resources: [R.nsight_compute, R.kipperly_speed, R.modal_docs],
+          },
+          {
             id: 'n-w2-a1',
             track: 'apply',
-            title: 'Demo — short Loom of streaming + concurrent requests',
+            title: 'Demo Loom + weekly public post',
             body:
-              '3 minutes max. Show the streaming endpoint. Show 4 concurrent requests. Show your throughput number on screen. Embed link in README.',
-            verify: 'Loom link in mini-vllm README; thumbnail visible on repo page',
-            hours: '45m',
+              '3 minutes max. Show the streaming endpoint. Show 4 concurrent requests. Show your throughput number on screen. Embed link in README. PUBLISH: Friday thread — embed the Loom GIF + "what I learned about head-of-line blocking in static batching" + repo link. The painful-static-batching framing is the hook; you will fix it next week and the W4 post writes itself.',
+            verify: 'Loom in README; Twitter/X thread (with Loom embed/GIF) + LinkedIn post live',
+            hours: '1.25h',
           },
           {
             id: 'n-w2-a2',
@@ -877,11 +1037,11 @@ export const PATH: Phase[] = [
           {
             id: 'n-w3-a1',
             track: 'apply',
-            title: 'Write-up — "Paged KV cache in 400 lines of Python"',
+            title: 'Write-up "Paged KV cache in 400 lines of Python" + weekly public post',
             body:
-              'A blog-style README section (or separate post). Show the block_table diagram. Explain why it works. Show the memory plot. Link the code. This is the first artifact a serving-team hiring manager will skim. Make it scannable.',
-            verify: 'docs/paged-kv-writeup.md ≤ 1500 words with one diagram and one chart',
-            hours: '2h',
+              'A blog-style README section (or separate post). Show the block_table diagram. Explain why it works. Show the memory plot. Link the code. This is the first artifact a serving-team hiring manager will skim. Make it scannable. PUBLISH: Friday thread — lead with the memory-plot chart ("dense KV at batch=16 OOMs; paged drops peak HBM by ≥30%"). The diagram + chart + repo link is the highest-shareability post of the sprint so far. Cross-post to LinkedIn; consider posting to r/MachineLearning if writeup polish is high.',
+            verify: 'docs/paged-kv-writeup.md ≤ 1500 words; Twitter/X thread + LinkedIn post live; (optional) r/MachineLearning submission link recorded',
+            hours: '2.5h',
           },
           {
             id: 'n-w3-p1',
@@ -919,7 +1079,7 @@ export const PATH: Phase[] = [
     color: 'var(--m-track-execution)',
     artifact: 'mini-vllm v0.4 — continuous-batching scheduler with prefill/decode mix + chunked prefill',
     context:
-      'Continuous batching is the single highest-leverage idea in modern LLM serving. Once you have paged KV + iteration-level scheduling, you have rebuilt the core of vLLM/SGLang/TGI. This week is also when your throughput numbers start being interview-worthy.',
+      'Continuous batching is the single highest-leverage idea in modern LLM serving. Once you have paged KV + iteration-level scheduling, you have rebuilt the core of vLLM/SGLang/TGI. This week is also when your throughput numbers start being interview-worthy. DENSE WEEK — scheduler build + chunked prefill + token-budget + NCU report sums to ~25h. Expect to invoke the Wednesday-drop rule and ship Leetcode + one prep task to W5. The build+apply spine is non-negotiable; everything else can slip.',
     weeks: [
       {
         number: 4,
@@ -985,13 +1145,24 @@ export const PATH: Phase[] = [
             hours: '2h',
           },
           {
+            id: 'n-w4-b4',
+            track: 'build',
+            title: 'NCU profile of the scheduler iteration — the headline number',
+            body:
+              'Second paid Modal H100 hour. `ncu --set full` on one iteration of the continuous-batching loop at concurrency=32. Capture: kernel breakdown (which kernels dominate ms), HBM throughput, achieved TC % on the matmuls. Compare against the W2 baseline. This is the report you screenshot for the BENCHMARKS chart and walk recruiters through in the SD interview.',
+            verify:
+              'docs/ncu-w4.md committed with kernel-time pie chart, HBM throughput, achieved-TC % vs W2; one-paragraph "what changed and why"',
+            hours: '2.5h',
+            resources: [R.nsight_compute, R.kipperly_speed, R.modal_docs],
+          },
+          {
             id: 'n-w4-a1',
             track: 'apply',
-            title: 'BENCHMARKS.md — the headline chart',
+            title: 'BENCHMARKS headline chart + weekly public post',
             body:
-              'Throughput vs concurrency curve, batch=1..64. Three lines: W2 static, W3 paged-no-CB, W4 continuous-batching. The shape of these lines IS your interview pitch — practice describing it out loud.',
-            verify: 'Chart committed (PNG + the python script that generates it); one-paragraph narrative below it',
-            hours: '2h',
+              'Throughput vs concurrency curve, batch=1..64. Three lines: W2 static, W3 paged-no-CB, W4 continuous-batching. The shape of these lines IS your interview pitch — practice describing it out loud. PUBLISH: Friday thread — the chart is the post. Caption: "rebuilt vLLM\'s scheduler in 600 LOC of Python; here is the 3× throughput jump from continuous batching." Link the repo. This is the post most likely to surface in inference-infra circles and get a recruiter DM.',
+            verify: 'Chart committed (PNG + the python script that generates it); narrative paragraph below; Twitter/X thread + LinkedIn post live with chart embedded',
+            hours: '2.5h',
           },
           {
             id: 'n-w4-a2',
@@ -1118,11 +1289,11 @@ export const PATH: Phase[] = [
           {
             id: 'n-w5-a2',
             track: 'apply',
-            title: 'mini-vllm v0.5 release — tag + changelog',
+            title: 'mini-vllm v0.5 release — tag + changelog + weekly post',
             body:
-              'Git tag v0.5. CHANGELOG entry. Update repo description ("OpenAI-compatible LLM serving engine with paged KV + continuous batching + INT8/specdec — built to learn the lane"). This is the version you start linking from applications.',
-            verify: 'v0.5 tag exists on GitHub; repo description updated',
-            hours: '45m',
+              'Git tag v0.5. CHANGELOG entry. Update repo description ("OpenAI-compatible LLM serving engine with paged KV + continuous batching + INT8/specdec — built to learn the lane"). This is the version you start linking from applications. PUBLISH: Friday thread — release-style post. The four-column accelerator table (throughput / HBM / p99 ITL / quality delta) is the body. "5 weeks ago this was a from-scratch generate() loop; today it ships INT8 quant with <1% quality drop." Pin this thread on your profile — it is the headline artifact recruiters will see when they click through.',
+            verify: 'v0.5 tag on GitHub; repo description updated; release-style Twitter/X thread (pinned) + LinkedIn post live',
+            hours: '1.25h',
           },
           {
             id: 'n-w5-p1',
@@ -1148,24 +1319,24 @@ export const PATH: Phase[] = [
   },
 
   // ════════════════════════════════════════════════════════════════════
-  // W6 — AI Gateway / Model Router
+  // W6 — AI Gateway Part 1 (skeleton + routing + fallback + cost)
   // ════════════════════════════════════════════════════════════════════
   {
     id: 'n-phase-6',
-    title: 'Phase 6 — AI Gateway',
-    blurb: 'Project 2. Production-grade router across hosted + local models. Cost, retry, cache, OTel.',
+    title: 'Phase 6 — AI Gateway · Part 1',
+    blurb: 'Project 2, week 1 of 2. Skeleton + routing + fallback + retry + cost ledger.',
     year: 0,
     cadence: 'week',
     color: 'var(--m-track-architecture)',
-    artifact: 'ai-gateway — Python service routing across OpenAI/Anthropic/local mini-vllm with full prod patterns',
+    artifact: 'ai-gateway v0.1 — Python service routing OpenAI/Anthropic/local mini-vllm with fallback + cost',
     context:
-      'Every serious AI product has a gateway in front of model providers. Cost ledger, retry-with-fallback, semantic cache, rate limit, OTel traces. This project is the one that signals "I can build the platform layer." It also stress-tests your mini-vllm — you will use it as the local backend.',
+      'Every serious AI product has a gateway in front of model providers. The original plan crammed skeleton + routing + cache + OTel + rate limit + cost ledger into one week — fiction. It is now two weeks: W6 = correctness spine (skeleton, routing, retry, fallback, cost). W7 = hardening (semantic cache, OTel/Jaeger, rate limit, polish + 2-day applied-AI side-quest). Your mini-vllm becomes the local backend; expect to find bugs in it this week and patch them.',
     weeks: [
       {
         number: 6,
-        title: 'AI Gateway — the platform layer',
+        title: 'Gateway core — routing, fallback, cost',
         goal:
-          'A single service that exposes /v1/chat/completions, routes intelligently across providers, retries with fallback, caches, tracks cost, emits OTel traces, enforces rate limits.',
+          'A single service that exposes /v1/chat/completions, routes across three providers with intelligent fallback, retries on 429/5xx, tracks per-request cost.',
         tasks: [
           {
             id: 'n-w6-r1',
@@ -1181,28 +1352,20 @@ export const PATH: Phase[] = [
             id: 'n-w6-r2',
             track: 'read',
             title: 'Portkey + Cloudflare AI Gateway docs',
-            body: 'Two commercial reference architectures. Steal the features list (semantic cache, guardrails, observability) for your own design.',
-            verify: 'docs/gateway-features.md with a checked list of which features you will implement vs skip',
+            body: 'Two commercial reference architectures. Steal the features list and split it into "this week" vs "next week" vs "skip."',
+            verify: 'docs/gateway-features.md with each feature tagged W6 / W7 / skip',
             hours: '1h',
             resources: [R.portkey_gateway, R.cf_ai_gateway],
-          },
-          {
-            id: 'n-w6-r3',
-            track: 'read',
-            title: 'OpenTelemetry Python — traces + metrics intro',
-            body: 'Just enough to instrument route handlers with spans and counters. You will export to a local Jaeger or Tempo.',
-            verify: 'Notes: trace context propagation across async calls in one paragraph',
-            hours: '1h',
-            resources: [R.otel_docs],
           },
           {
             id: 'n-w6-b1',
             track: 'build',
             title: 'ai-gateway skeleton — FastAPI, three providers, one route',
             body:
-              'Single endpoint /v1/chat/completions. Provider abstraction with three impls: OpenAI, Anthropic, local-vllm (your W5). Config-driven model list.',
-            verify: 'Same request hits all three providers via `model=` switch; OpenAI-compatible response shape',
-            hours: '3h',
+              'Single endpoint /v1/chat/completions. Provider abstraction with three impls: OpenAI, Anthropic, local-vllm (your W5). Config-driven model list. Streaming pass-through (do not buffer the SSE stream for V1).',
+            verify:
+              'Same request hits all three providers via `model=` switch; OpenAI-compatible response shape; streaming works against your local mini-vllm',
+            hours: '4h',
           },
           {
             id: 'n-w6-b2',
@@ -1210,61 +1373,44 @@ export const PATH: Phase[] = [
             title: 'Routing + fallback + retry',
             body:
               'Strategy: cost-aware primary + capability-fallback. Retry on 429/5xx with exponential backoff. Fallback chain on persistent failure. Cooldown a provider for N seconds after error rate threshold.',
-            verify: 'Chaos test: kill OpenAI mock midstream → request resolves via Anthropic within 2 retries; trace shows the path',
-            hours: '4h',
+            verify: 'Chaos test: kill OpenAI mock midstream → request resolves via Anthropic within 2 retries; structured log shows the path',
+            hours: '5h',
           },
           {
             id: 'n-w6-b3',
             track: 'build',
-            title: 'Semantic cache',
+            title: 'Cost ledger — per-request input/output cost, SQLite',
             body:
-              'Embed request prompt with a tiny embedding model, cosine-search against a Redis-backed cache, return cached completion if similarity > τ. Configurable per-route. Avoid caching streaming responses for v1.',
-            verify: 'Hit rate ≥ 30% on a repeated FAQ workload; cached response served < 50ms',
+              'Per-request: input tokens × input price + output tokens × output price → cost. Append to a SQLite ledger (Postgres later). `/admin/costs?since=...` returns aggregate cost grouped by model + by API key.',
+            verify: '`/admin/costs` endpoint returns correct aggregates against a fixture set of 100 requests',
             hours: '3h',
-          },
-          {
-            id: 'n-w6-b4',
-            track: 'build',
-            title: 'Cost ledger + OTel traces',
-            body:
-              'Per-request: input tokens × input price + output tokens × output price → cost. Append to a SQLite/Postgres ledger. Emit OTel spans with provider, latency, tokens, cost as attributes. Local Jaeger for inspection.',
-            verify: '`/admin/costs?since=...` returns aggregate cost; Jaeger UI shows traces with cost on each span',
-            hours: '3h',
-            resources: [R.otel_docs],
-          },
-          {
-            id: 'n-w6-b5',
-            track: 'build',
-            title: 'Rate limiting — token-bucket per API key',
-            body: 'Per-key RPM + TPM limits. Return 429 with Retry-After header. Test under load.',
-            verify: 'Under 2× limit traffic, exactly the over-limit fraction gets 429; under limit, 0% rejection',
-            hours: '2h',
           },
           {
             id: 'n-w6-a1',
             track: 'apply',
-            title: 'ai-gateway README — arch diagram + numbers',
+            title: 'ai-gateway README v0.1 — what it does today, what is coming next week',
             body:
-              'Architecture diagram (Excalidraw or Mermaid). Numbers table: cost saved by cache, latency added by gateway (p50/p99), fallback success rate during chaos test.',
-            verify: 'README pushed; diagram embedded; numbers committed',
+              'Architecture diagram (Excalidraw or Mermaid). Numbers table: fallback success rate during chaos test, p50/p99 added latency vs direct provider call. Explicit "next week" section listing cache / OTel / rate-limit / RAG side-quest. The "honest in-progress" framing reads well to engineering hiring managers.',
+            verify: 'README pushed; diagram embedded; W7 roadmap section visible',
             hours: '1.5h',
           },
           {
             id: 'n-w6-a2',
             track: 'apply',
-            title: 'Outreach round 2 — 5 more DMs, this time with both projects',
-            body: 'Link mini-vllm AND ai-gateway. Same short template; the artifact list is doing the talking now.',
-            verify: '5 DMs sent; replies tracked',
-            hours: '1.5h',
+            title: 'Weekly public post — gateway part 1',
+            body:
+              'Your second public post under the W0 build-in-public commitment. Short. The gateway diagram. The fallback chaos-test number. Link to repo. This is what travels.',
+            verify: 'Twitter/X + LinkedIn post pushed; link added to portfolio meta-repo',
+            hours: '45m',
           },
           {
             id: 'n-w6-p1',
             track: 'prep',
             title: 'System-design page 2 — "Design an AI Gateway"',
             body:
-              'Fill the empty W0 page. Use ai-gateway as the body. Constraints (10k RPS, multi-tenant, p99 added latency < 50ms). Cache invalidation strategy. Multi-region deploy.',
-            verify: 'Page filled; rehearsed in 25 min',
-            hours: '2.5h',
+              'Fill the empty W0 page. Use ai-gateway as the body. Constraints (10k RPS, multi-tenant, p99 added latency < 50ms). Cache invalidation strategy. Multi-region deploy. You will rehearse this after W7 when you have all the parts shipped.',
+            verify: 'Page filled to first-draft level; concrete numbers from your service inserted in placeholder slots',
+            hours: '2h',
           },
           {
             id: 'n-w6-p2',
@@ -1275,120 +1421,124 @@ export const PATH: Phase[] = [
             resources: [R.neetcode],
           },
         ],
-        reading: [R.litellm_repo, R.portkey_gateway, R.cf_ai_gateway, R.otel_docs],
+        reading: [R.litellm_repo, R.portkey_gateway, R.cf_ai_gateway],
       },
     ],
   },
 
   // ════════════════════════════════════════════════════════════════════
-  // W7 — Production RAG
+  // W7 — AI Gateway Part 2 (cache + OTel + rate limit) + 2-day RAG side-quest
   // ════════════════════════════════════════════════════════════════════
   {
     id: 'n-phase-7',
-    title: 'Phase 7 — Production RAG',
-    blurb: 'Project 3. Hybrid retrieval, reranker, eval harness. Evals first. Not a toy chatbot.',
+    title: 'Phase 7 — AI Gateway · Part 2 + Applied AI side-quest',
+    blurb: 'Project 2, week 2 of 2. Cache + OTel + rate limit. Then 2-day mini-RAG demo for breadth.',
     year: 0,
     cadence: 'week',
-    color: 'var(--m-track-foundations)',
-    artifact: 'rag-prod — ingestion + hybrid retrieval + reranker + ragas eval dashboard + citations',
+    color: 'var(--m-track-architecture)',
+    artifact:
+      'ai-gateway v1.0 — full platform layer (cache, OTel, rate limit) + mini-rag-demo (single repo, hybrid retrieval, ≤500 LOC) as Applied-AI side-quest',
     context:
-      'Most "RAG projects" online are toys. The hire signal here is: you built the eval harness FIRST, then iterated retrieval/reranking against measurable precision@k and faithfulness gains. The numbers on the eval dashboard are what convinces a platform team you understand AI quality engineering.',
+      'The original plan had RAG as a flagship; that diluted the inference-engineer lane. RAG is now a 2-day side-quest at the end of this week — enough to show breadth on a resume bullet ("built a hybrid-retrieval demo with eval harness"), not enough to claim it as a flagship. The week\'s spine is finishing the gateway so it is genuinely the "platform layer" artifact you can walk a hiring manager through. DENSE WEEK — gateway hardening (cache + OTel + rate limit + load test) plus the RAG side-quest sums to ~26h. The RAG side-quest is the explicit drop candidate: if you are behind on Wednesday, ship a 2-row eval table and 100 lines of code, NOT a polished demo. Gateway v1.0 is non-negotiable; RAG is "nice to have."',
     weeks: [
       {
         number: 7,
-        title: 'Eval-driven RAG, end to end',
+        title: 'Gateway hardening + RAG side-quest',
         goal:
-          '50-question gold eval set. Ingestion pipeline. BM25 + dense hybrid. Cross-encoder rerank. Structured outputs with citations. Dashboard showing precision@k, recall@k, faithfulness, answer correctness with deltas across iterations.',
+          'ai-gateway v1.0: semantic cache, OTel/Jaeger traces, per-key rate limiting, load test under 100 RPS. Plus: a 2-day mini-RAG demo with hybrid retrieval and a 20-Q eval set, lives in a small companion repo, NOT on the flagship list.',
         tasks: [
           {
             id: 'n-w7-r1',
             track: 'read',
-            title: 'Pinecone — RAG that actually works',
-            body: 'Production patterns: chunking strategies, hybrid scoring, rerank, eval. The most practical single read on RAG.',
-            verify: 'Notes: chunking strategies table (fixed / semantic / hierarchical / contextual) with one tradeoff each',
+            title: 'OpenTelemetry Python — traces + metrics',
+            body:
+              'Just enough to instrument route handlers with spans and counters. You will export to a local Jaeger. Read the trace-context-propagation section twice — async + middleware boundaries are where most people lose spans.',
+            verify: 'Notes: trace context propagation across async calls; one paragraph on the three failure modes',
             hours: '1h',
-            resources: [R.pinecone_rag],
+            resources: [R.otel_docs],
           },
           {
             id: 'n-w7-r2',
             track: 'read',
-            title: 'Anthropic — Contextual Retrieval',
-            body: 'Prompt-based chunk enrichment. Implement if it fits your domain corpus.',
-            verify: 'Notes: when contextual retrieval beats plain hybrid; when it does not',
-            hours: '45m',
-            resources: [R.anthropic_contextual],
-          },
-          {
-            id: 'n-w7-r3',
-            track: 'read',
-            title: 'Ragas docs',
-            body: 'The four key metrics: faithfulness, answer-relevancy, context-precision, context-recall. Read once carefully.',
-            verify: 'Notes: one paragraph per metric in your own words',
-            hours: '45m',
-            resources: [R.ragas_docs],
+            title: 'Cache strategies + RAG mini-read',
+            body:
+              'For the gateway: read one source on semantic cache invalidation (Portkey blog or a vendor write-up). For the RAG side-quest: Pinecone "RAG that actually works" (skim, 30m). Ragas docs (skim, 20m). You are not building a flagship RAG; you are building a demo that has the right vocabulary.',
+            verify: 'Notes: cache invalidation tradeoffs + the four ragas metrics in one sentence each',
+            hours: '1.5h',
+            resources: [R.portkey_gateway, R.pinecone_rag, R.ragas_docs],
           },
           {
             id: 'n-w7-b1',
             track: 'build',
-            title: 'Pick a corpus + write 50-Q gold set',
+            title: 'Semantic cache — embed prompt, cosine match against Redis',
             body:
-              'Corpus = something you actually care about (e.g., Mosaic content, Kubernetes docs, a sport rulebook). 50 questions with gold answers + gold source-doc references. This is the artifact that lets you iterate honestly.',
-            verify: 'gold.jsonl committed; 50 entries with question + answer + source_doc_ids',
-            hours: '4h',
+              'Embed request prompt with a tiny embedding model (e5-small or bge-small). Cosine-search against a Redis-backed cache. Return cached completion if similarity > τ. Configurable per-route. Skip caching for streaming responses in v1.',
+            verify: 'Hit rate ≥ 30% on a repeated FAQ workload; cached response served < 50ms; cache invalidation rule documented',
+            hours: '3h',
           },
           {
             id: 'n-w7-b2',
             track: 'build',
-            title: 'Ingestion pipeline — chunk, embed, store',
+            title: 'OTel traces + Jaeger local',
             body:
-              'Chunk size 512 with overlap 64 (or contextual chunking if you implement Anthropic\'s trick). Embed with bge-base or text-embedding-3-small. Store in a vector DB (Qdrant local is easiest) + BM25 index (rank_bm25 or OpenSearch).',
-            verify: 'Re-ingestion is idempotent; corpus stats in docs/corpus.md',
+              'Emit OTel spans with provider, latency, tokens, cost as attributes. Local Jaeger via docker-compose. Spans must propagate across async boundaries — verify with a request that fans out to retry + fallback and shows the full tree.',
+            verify: 'Jaeger UI shows traces with provider/latency/cost attributes; one screenshot in README',
             hours: '3h',
+            resources: [R.otel_docs],
           },
           {
             id: 'n-w7-b3',
             track: 'build',
-            title: 'Hybrid retrieval + cross-encoder reranker',
-            body:
-              'Retrieve top-50 via dense AND top-50 via BM25, RRF fuse to top-20, rerank with bge-reranker-v2-m3 to top-5. Pass top-5 to the LLM via your ai-gateway with a structured-output schema that requires citations.',
-            verify: 'End-to-end query returns answer + citations array; latency p99 < 1.5s on local corpus',
-            hours: '4h',
-            resources: [R.bge_reranker],
+            title: 'Rate limiting — token-bucket per API key',
+            body: 'Per-key RPM + TPM limits. Return 429 with Retry-After header. Test under load with a small load-test script (locust or hey).',
+            verify: 'Under 2× limit traffic, exactly the over-limit fraction gets 429; under limit, 0% rejection',
+            hours: '2h',
           },
           {
             id: 'n-w7-b4',
             track: 'build',
-            title: 'Eval dashboard — ragas + your gold set',
+            title: 'Load test — 100 RPS mixed workload',
             body:
-              'Run ragas faithfulness, answer-relevancy, context-precision, context-recall against the 50-Q gold set. Also compute retrieval precision@5 and recall@5 vs gold doc ids. Dashboard = a simple Streamlit or a markdown table committed per iteration.',
-            verify: 'Three rows in the table: (1) BM25 only, (2) dense only, (3) hybrid+rerank — with all four ragas metrics + retrieval precision/recall',
-            hours: '3h',
-            resources: [R.ragas_docs],
+              'Synthetic 100-RPS mix (80% short, 20% long) for ~10 min. Capture: p50/p95/p99 latency, cache hit rate, fallback rate. Two ways: (a) PAID — one Modal H100 hour with your mini-vllm as one backend, proves end-to-end; (b) FREE — locally against mocked OpenAI/Anthropic responders, proves the gateway logic without the GPU loop. Either works for the hire signal. Use (a) only if you have Modal budget left; else (b).',
+            verify: 'BENCHMARKS-gateway.md committed with the three latency percentiles, hit/fallback rates, mode used (paid/free), and a one-paragraph honest assessment',
+            hours: '2.5h',
+            resources: [R.modal_docs],
+          },
+          {
+            id: 'n-w7-b5',
+            track: 'build',
+            title: 'mini-rag-demo (Applied-AI side-quest, capped at 2 days)',
+            body:
+              'Companion repo, NOT flagship. Single file ≤500 LOC. 20-Q gold set on a corpus you care about (Mosaic content, K8s docs, whatever). BM25 + dense retrieval, RRF fuse, bge-reranker, top-3 chunks to your gateway. Compute precision@3 + ragas faithfulness on the 20 questions. The point: a resume bullet that says "hybrid retrieval, cross-encoder rerank, eval harness" — backed by a tiny working repo. Do NOT spend more than 2 days here. If it slips, ship what you have.',
+            verify:
+              'mini-rag-demo repo public; README ≤ 400 words; eval table with 2 rows (BM25 only / hybrid+rerank) and both metrics; total time spent ≤ 2 days (track it)',
+            hours: '6h',
+            resources: [R.pinecone_rag, R.ragas_docs, R.bge_reranker],
           },
           {
             id: 'n-w7-a1',
             track: 'apply',
-            title: 'rag-prod README — eval-first narrative',
+            title: 'ai-gateway v1.0 release + weekly public post',
             body:
-              'Lead with the dashboard. Show how each component (hybrid, rerank, contextual chunking) moved which number. This is the writeup that signals "I think in evals."',
-            verify: 'README ≤ 1500 words; dashboard PNG embedded; delta table visible above the fold',
-            hours: '1.5h',
+              'Git tag v1.0. README now lists every feature the live service has, with one number for each. Public post: gateway architecture, Jaeger screenshot, load-test numbers. Same template as W6 post.',
+            verify: 'v1.0 tag exists; README full; Twitter/X + LinkedIn post pushed',
+            hours: '1h',
           },
           {
             id: 'n-w7-a2',
             track: 'apply',
             title: 'Applications — first 5',
             body:
-              'Five real applications this week. Tailored cover note (3 sentences) referencing one specific thing the team works on. Link mini-vllm + ai-gateway + rag-prod.',
+              'Five real applications this week. Tailored cover note (3 sentences) referencing one specific thing the team works on. Link mini-vllm + ai-gateway. Mention mini-rag-demo as a one-line "also" — never the headline.',
             verify: '5 applications submitted; docs/applications.md tracker started',
             hours: '2h',
           },
           {
             id: 'n-w7-p1',
             track: 'prep',
-            title: 'System-design page 3 — "Design Production RAG"',
+            title: 'System-design page 3 — "Design a Multi-Tenant AI Platform"',
             body:
-              'Fill the W0 page. Constraints (10M docs, 100 QPS, p99 < 2s, freshness < 1hr). Eval pipeline as a first-class component, not an afterthought.',
+              'Replaces the original "Design Production RAG" page — that no longer matches your portfolio. New page: multi-tenant safety (auth, quota, isolation, prompt-injection budget), cost attribution, observability. Constraints (1000 tenants, 10k RPS aggregate, p99 added latency < 50ms, per-tenant cost ledger). Your gateway is the body of the answer.',
             verify: 'Page filled; rehearsed in 25 min',
             hours: '2.5h',
           },
@@ -1401,7 +1551,7 @@ export const PATH: Phase[] = [
             resources: [R.neetcode],
           },
         ],
-        reading: [R.pinecone_rag, R.anthropic_contextual, R.ragas_docs, R.bge_reranker],
+        reading: [R.otel_docs, R.portkey_gateway, R.pinecone_rag, R.ragas_docs, R.bge_reranker],
       },
     ],
   },
@@ -1418,7 +1568,7 @@ export const PATH: Phase[] = [
     color: 'var(--m-track-compilers)',
     artifact: 'kernels/ directory in mini-vllm — Triton softmax + matmul-bias with roofline analysis',
     context:
-      'For the AI Systems Engineer lane (not the dedicated kernel engineer lane), one well-understood Triton kernel + a roofline reading habit is enough. You are not competing with CUTLASS authors. You are demonstrating that you can read a kernel, predict its regime, and verify with NCU.',
+      'GPU intuition was threaded through W2 (first NCU snapshot of the decode pass) and W4 (NCU profile of the continuous-batching iteration). This week consolidates: you write your own kernels. For the AI Systems Engineer lane (not the dedicated kernel engineer lane), one well-understood Triton kernel + a roofline reading habit is enough. You are not competing with CUTLASS authors. You are demonstrating that you can read a kernel, predict its regime, and verify with NCU. The W2/W4 reports are now reread with the depth this week buys you — and the numbers mean something different. DENSE WEEK — kernel writing + autotune + NCU + roofline writeup sums to ~22h. The roofline writeup is the drop candidate if you slip; the two kernels + NCU report are non-negotiable (they are the W8 artifact).',
     weeks: [
       {
         number: 8,
@@ -1536,7 +1686,7 @@ export const PATH: Phase[] = [
     color: 'var(--m-track-architecture)',
     artifact: 'dist-inference — replica router with consistent hashing + queue, OR 2-GPU TP for a small model',
     context:
-      'Pick replica-serving if you have 1 GPU (cheap to demonstrate via process-level replicas). Pick TP if you have 2 GPUs (more impressive, harder to debug). Either way: the artifact is a scaling chart, not the parallelism itself.',
+      'Pick replica-serving if you have 1 GPU (cheap to demonstrate via process-level replicas). Pick TP if you have 2 GPUs (more impressive, harder to debug). Kaggle gives you 2× T4 for free (30h/wk) which makes the TP track meaningfully more accessible than this plan originally assumed — strongly prefer TP for the hire signal unless you are already behind on the sprint. Either way: the artifact is a scaling chart, not the parallelism itself. DENSE WEEK — after picking ONE track (replica or TP, NOT both), the load is ~22h. If you try to do both you will ship neither. The scaling chart + README is non-negotiable; SD page 4 can slip to W10 if needed.',
     weeks: [
       {
         number: 9,
@@ -1966,6 +2116,30 @@ export function getWeek(num: number): { phase: Phase; week: Week } | null {
 
 export function totalTasks(): number {
   return allTasks().length
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Hour-budget helpers — derive load per week from task.hours strings.
+// ────────────────────────────────────────────────────────────────────────
+
+export function parseHours(h?: string): number {
+  if (!h) return 0
+  if (h === 'ongoing' || h === 'as needed') return 0
+  if (h.endsWith('m')) return parseFloat(h) / 60
+  return parseFloat(h)
+}
+
+export function weekHours(week: Week): number {
+  return week.tasks.reduce((sum, t) => sum + parseHours(t.hours), 0)
+}
+
+// Weeks above this threshold get a DENSE badge in the UI. Derived from the
+// audit: W4 ≈26h, W7 ≈26.5h, W8 ≈22.5h, W9 ≈28h (pre-pick-one) all warrant
+// the buffer rule. 22h is the empirical cliff above the 20h/wk target.
+export const DENSE_WEEK_THRESHOLD_HOURS = 22
+
+export function isDenseWeek(week: Week): boolean {
+  return weekHours(week) > DENSE_WEEK_THRESHOLD_HOURS
 }
 
 export function maxWeek(): number {

@@ -11,6 +11,7 @@ type NorthState = {
   notes: Record<string, string>
   currentWeek: number // period id (0..12)
   currentGlobalWeek: number // global spine index (0..MAX)
+  startDate?: string // ISO date (YYYY-MM-DD) — W0 start; enables scheduled-vs-current cue
 }
 
 const EMPTY: NorthState = { done: {}, notes: {}, currentWeek: 0, currentGlobalWeek: 0 }
@@ -33,6 +34,7 @@ function load(): NorthState {
       notes: parsed.notes ?? {},
       currentWeek,
       currentGlobalWeek,
+      startDate: typeof parsed.startDate === 'string' ? parsed.startDate : undefined,
     }
   } catch {
     return EMPTY
@@ -99,6 +101,14 @@ export function useNorthProgress() {
     [],
   )
 
+  const setStartDate = useCallback((date: string | undefined) => {
+    const next = load()
+    if (date) next.startDate = date
+    else delete next.startDate
+    persist(next)
+    setState({ ...next })
+  }, [])
+
   const reset = useCallback(() => {
     localStorage.removeItem(KEY)
     window.dispatchEvent(new Event(EVENT))
@@ -121,6 +131,7 @@ export function useNorthProgress() {
         notes: parsed.notes ?? {},
         currentWeek,
         currentGlobalWeek,
+        startDate: typeof parsed.startDate === 'string' ? parsed.startDate : undefined,
       }
       persist(merged)
       setState(merged)
@@ -141,6 +152,7 @@ export function useNorthProgress() {
     setNote,
     setCurrentWeek,
     setCurrentGlobalWeek,
+    setStartDate,
     reset,
     exportJson,
     importJson,

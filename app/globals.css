@@ -4854,6 +4854,58 @@ h2.m-focus-h2.is-active {
   color: var(--m-fg);
 }
 
+/* Hour-load chip on the collapsed row */
+.m-atlas-tl-hours {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  color: var(--m-fg-muted);
+  background: var(--m-code-inline-bg);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.22rem;
+  white-space: nowrap;
+}
+.m-atlas-tl-hours-dense {
+  color: color-mix(in srgb, #d97706 80%, var(--m-fg));
+  background: color-mix(in srgb, #d97706 15%, transparent);
+}
+
+/* DENSE WEEK badge — small, amber, attention-grabbing without being alarming */
+.m-atlas-tl-dense-tag {
+  flex: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, #d97706 90%, var(--m-fg));
+  background: color-mix(in srgb, #d97706 18%, transparent);
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.22rem;
+  border: 1px solid color-mix(in srgb, #d97706 40%, transparent);
+  white-space: nowrap;
+}
+
+/* Scheduled-vs-current chip in the header stats */
+.m-atlas-stat-scheduled {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  background: var(--m-code-inline-bg);
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
+}
+.m-atlas-stat-scheduled-behind {
+  color: color-mix(in srgb, #d97706 90%, var(--m-fg));
+  background: color-mix(in srgb, #d97706 15%, transparent);
+}
+.m-atlas-stat-scheduled-ahead {
+  color: color-mix(in srgb, #16a34a 90%, var(--m-fg));
+  background: color-mix(in srgb, #16a34a 12%, transparent);
+}
+.m-atlas-stat-scheduled-delta {
+  color: var(--m-fg-dim);
+  font-size: 0.72rem;
+}
+
 /* The expanded inline panel */
 .m-atlas-tl-panel {
   position: relative;
@@ -5035,6 +5087,20 @@ h2.m-focus-h2.is-active {
     width: 2.2rem;
     height: 3px;
   }
+  /* Compact hour chip + DENSE badge so the top row doesn't wrap */
+  .m-atlas-tl-hours {
+    font-size: 0.62rem;
+    padding: 0.08rem 0.32rem;
+  }
+  .m-atlas-tl-dense-tag {
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    padding: 0.1rem 0.32rem;
+  }
+  /* Scheduled stat: drop the verbose delta on small screens (still in tooltip) */
+  .m-atlas-stat-scheduled-delta {
+    display: none;
+  }
   .m-atlas-tl-chev {
     margin-left: auto;
     font-size: 1.1rem;
@@ -5096,6 +5162,10 @@ h2.m-focus-h2.is-active {
     display: none;
   }
   .m-atlas-tl-progress {
+    display: none;
+  }
+  /* DENSE badge stays (load signal); hour chip drops to save horizontal space */
+  .m-atlas-tl-hours {
     display: none;
   }
   .m-atlas-bedrock-anchor {
