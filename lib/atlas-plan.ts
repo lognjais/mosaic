@@ -1668,6 +1668,21 @@ export const PATH: Phase[] = [
           'H100 roofline numbers memorized. Tensor Core MMA shape constraints internalized. Fused-op design doc written with predicted arithmetic intensity per shape. Skeleton repo created.',
         tasks: [
           {
+            id: 'w3-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W3 Capstone 1',
+            body:
+              'Can you do these cold? (Verifies that W1-W2 math + GPU model landed)\n' +
+              '  • H100 bandwidth pyramid numbers (HBM3, L2, SMEM, regs)\n' +
+              '  • Tensor Core shape constraints (wgmma; why m64nNk16 not m32nNk16)\n' +
+              '  • Roofline regime prediction from a (shape, dtype, hardware) triple\n' +
+              '  • Triton vector-add ran cleanly on Modal H100 in W1\n' +
+              'If any feel fuzzy, re-skim the resource below before reading r1.',
+            verify: 'Quick self-check; remediation started if any reflex rating <3',
+            hours: '15m check + remediation in flight',
+            resources: [R.horace_brrr, R.hopper_whitepaper, R.gpu_mode],
+          },
+          {
             id: 'w3-r1',
             track: 'read',
             title: 'Horace He — Making DL Go Brrrr (deep re-read)',
@@ -2198,6 +2213,20 @@ export const PATH: Phase[] = [
         title: 'Setup + bench harness',
         goal: 'bench.py producing clean cuBLAS TFLOPs/s. Skeleton repo with the 3 placeholder dirs.',
         tasks: [
+          {
+            id: 'w9-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W9 Capstone 2',
+            body:
+              'Can you do these cold? (Verifies that Capstone 1 fluency landed)\n' +
+              '  • Triton kernel authoring — autotune, BLOCK constants, program_id math\n' +
+              '  • NCU report reading — TC% utilization, kernel-time pie, HBM throughput\n' +
+              '  • Roofline AI calculation for an arbitrary matmul shape\n' +
+              'Capstone 2 is three matmuls in three DSLs in parallel with interview loops — gap-fills mid-week cost days. If Capstone 1 was a slog, redo the W5 NCU writeup before reading r1.',
+            verify: 'Quick self-check; revisit C1 NCU report if any reflex rating <3',
+            hours: '15m check + remediation in flight',
+            resources: [R.triton_docs, R.horace_brrr, R.hopper_whitepaper],
+          },
           {
             id: 'w9-r1',
             track: 'read',
@@ -2764,6 +2793,22 @@ export const PATH: Phase[] = [
         goal:
           'Onboarded, first feature shipped, math habit running. Personal site live. First paper read in role.',
         tasks: [
+          {
+            id: 'y1q1-prereq',
+            track: 'prep',
+            stream: 'core',
+            title: 'Prerequisites — verify before Y1 starts',
+            body:
+              'You\'ve landed an AI infra role. Before the math/OSS/paper-reading habit kicks in:\n' +
+              '  • Capstone 1 + Capstone 2 repos public + readable by recruiters\n' +
+              '  • Math: can you derive softmax\'s Jacobian + backprop for one MLP layer cold?\n' +
+              '  • Paper-reading: do you have a 3-pass method (Keshav) or a personal equivalent?\n' +
+              '  • Calendar: 30-60 min/day math block scheduled (recurring, immovable)\n' +
+              'If math feels rusty, Karpathy Z2H ep 1-3 (micrograd → makemore) is the unblocker for the year. If 3-pass method is new, Keshav (1h) is non-negotiable — you\'ll read 24+ papers in Y1.',
+            verify: 'Quick self-check; Karpathy ep 1 watched before y1q1-r1; math calendar block on schedule',
+            hours: '30m check + remediation in flight',
+            resources: [R.karpathy_z2h, R.threeB1B_linalg],
+          },
           {
             id: 'y1q1-b1',
             track: 'build',
@@ -3587,6 +3632,23 @@ export const PATH: Phase[] = [
         goal:
           'First batch sent (5–7 elite-lab apps), all with warm intros. Daily math + ML implementation drills running.',
         tasks: [
+          {
+            id: 'y3q1-prereq',
+            track: 'prep',
+            stream: 'core',
+            title: 'Prerequisites — verify before Y3 elite-lab push',
+            body:
+              'You\'re about to send applications to Anthropic / OpenAI / DeepMind / similar. The bar at the loop is formal, not vibes. Verify cold:\n' +
+              '  • Math: derive backprop for one MLP layer; softmax Jacobian; KL divergence; SGD convergence sketch\n' +
+              '  • Implement-from-scratch: can you write attention(Q,K,V) + a causal mask + KV cache in 30 min from a blank file?\n' +
+              '  • Paper-reading: 3-pass routine running; last 5 papers logged with one novel ablation idea each\n' +
+              '  • Coding: CodeSignal-style 90-min session at 100% accuracy (not LeetCode)\n' +
+              '  • AI safety: a 500-word position you\'ve rehearsed (Anthropic-style ethics round)\n' +
+              'If any reflex is rusty: Karpathy Z2H ep 1-4 (re-watch), Math4ML targeted, 3 papers in 1 sitting with the 3-pass method. Reds here are the difference between rejected-at-screen and on-site invite — DO NOT skip.',
+            verify: 'Self-check entry in weekly log; reds remediated before y3q1-a1 submission goes out',
+            hours: '1h check + variable remediation in flight',
+            resources: [R.karpathy_z2h, R.threeB1B_linalg, R.cs6120],
+          },
           {
             id: 'y3q1-a1',
             track: 'apply',

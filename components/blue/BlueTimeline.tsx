@@ -9,11 +9,13 @@ import {
   RESOURCE_KIND_LABEL,
   STREAM_LABELS,
   allTasks,
+  isDenseWeek,
   maxGlobalWeek,
   periodAtGlobalWeek,
   periodLabel,
   periodSpan,
   totalGlobalWeeks,
+  weekHours,
   type HalfLife,
   type Phase,
   type Resource,
@@ -21,10 +23,10 @@ import {
   type Task,
   type Track,
   type Week,
-} from '../../lib/atlas-plan'
-import { useAtlasProgress } from '../../lib/use-atlas-progress'
+} from '../../lib/blue-plan'
+import { useBlueProgress } from '../../lib/use-blue-progress'
 
-const TRACKS: Track[] = ['read', 'build', 'apply', 'prep']
+const TRACKS: Track[] = ['prep', 'read', 'build', 'apply']
 const TRACK_LABEL: Record<Track, string> = {
   read: 'Read',
   build: 'Build',
@@ -76,7 +78,7 @@ function pct(part: number, whole: number): number {
   return whole === 0 ? 0 : Math.round((part / whole) * 100)
 }
 
-export function AtlasTimeline() {
+export function BlueTimeline() {
   const {
     state,
     isDone,
@@ -84,10 +86,23 @@ export function AtlasTimeline() {
     toggle,
     setNote,
     setCurrentGlobalWeek,
+    setStartDate,
     reset,
     exportJson,
     importJson,
-  } = useAtlasProgress()
+  } = useBlueProgress()
+
+  const scheduledG = useMemo<number | null>(() => {
+    if (!state.startDate) return null
+    const start = new Date(state.startDate + 'T00:00:00')
+    if (Number.isNaN(start.getTime())) return null
+    const now = new Date()
+    const days = Math.floor((now.getTime() - start.getTime()) / 86_400_000)
+    const w = Math.floor(days / 7)
+    if (w < 0) return 0
+    if (w > MAX_GLOBAL_WEEK) return MAX_GLOBAL_WEEK
+    return w
+  }, [state.startDate])
 
   const rows = useMemo(buildRows, [])
   const all = useMemo(() => allTasks(), [])
@@ -96,14 +111,12 @@ export function AtlasTimeline() {
   const overallPct = pct(totalDone, total)
 
   const initialG = state.currentGlobalWeek ?? 0
-  // Exclusive accordion: at most one week expanded at a time.
   const [expanded, setExpanded] = useState<number | null>(initialG)
   const [visibleG, setVisibleG] = useState<number>(initialG)
   const [bedrockOpen, setBedrockOpen] = useState(false)
 
   const rowRefs = useRef<Map<number, HTMLDivElement>>(new Map())
 
-  // IntersectionObserver: which row is currently in the central viewport band?
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return
     const io = new IntersectionObserver(
@@ -122,7 +135,6 @@ export function AtlasTimeline() {
     return () => io.disconnect()
   }, [rows.length])
 
-  // Persist visible week → state.currentGlobalWeek (rAF-debounced).
   useEffect(() => {
     if (visibleG === state.currentGlobalWeek) return
     const id = requestAnimationFrame(() => {
@@ -132,7 +144,6 @@ export function AtlasTimeline() {
     return () => cancelAnimationFrame(id)
   }, [visibleG]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Initial scroll: jump to last-known position once on mount.
   const didMountScroll = useRef(false)
   useEffect(() => {
     if (didMountScroll.current) return
@@ -172,8 +183,8 @@ export function AtlasTimeline() {
       <div className="m-atlas-tl-main">
         <header className="m-atlas-header">
           <div className="m-atlas-title-row">
-            <h1 className="m-atlas-title">Atlas</h1>
-            <span className="m-atlas-sub">private · 173-week vertical timeline</span>
+            <h1 className="m-atlas-title">Blue</h1>
+            <span className="m-atlas-sub">private · 24-week ML compiler conversion · the systems→compiler bridge</span>
           </div>
           <div className="m-atlas-stats">
             <span className="m-atlas-stat">
@@ -182,6 +193,28 @@ export function AtlasTimeline() {
             </span>
             <span className="m-atlas-stat-sep">·</span>
             <span className="m-atlas-stat">{overallPct}%</span>
+            {scheduledG !== null && scheduledG !== state.currentGlobalWeek && (
+              <>
+                <span className="m-atlas-stat-sep">·</span>
+                <span
+                  className={
+                    'm-atlas-stat m-atlas-stat-scheduled' +
+                    (scheduledG > state.currentGlobalWeek
+                      ? ' m-atlas-stat-scheduled-behind'
+                      : ' m-atlas-stat-scheduled-ahead')
+                  }
+                  title={
+                    scheduledG > state.currentGlobalWeek
+                      ? `Behind schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
+                      : `Ahead of schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
+                  }
+                >
+                  {scheduledG > state.currentGlobalWeek
+                    ? `${scheduledG - state.currentGlobalWeek}w behind`
+                    : `${state.currentGlobalWeek - scheduledG}w ahead`}
+                </span>
+              </>
+            )}
           </div>
         </header>
 
@@ -216,7 +249,7 @@ export function AtlasTimeline() {
               const a = document.createElement('a')
               a.href = url
               const date = new Date().toISOString().slice(0, 10)
-              a.download = `atlas-progress-${date}.json`
+              a.download = `blue-progress-${date}.json`
               document.body.appendChild(a)
               a.click()
               a.remove()
@@ -226,10 +259,10 @@ export function AtlasTimeline() {
             Export
           </button>
           <span className="m-atlas-footer-sep">·</span>
-          <label className="m-atlas-link" htmlFor="atlas-import">
+          <label className="m-atlas-link" htmlFor="blue-import">
             Import
             <input
-              id="atlas-import"
+              id="blue-import"
               type="file"
               accept="application/json"
               style={{ display: 'none' }}
@@ -255,14 +288,32 @@ export function AtlasTimeline() {
           </button>
           <span className="m-atlas-footer-sep">·</span>
           <span className="m-atlas-stat">
-            {TOTAL_GLOBAL_WEEKS} weeks · {PATH.length} phases
+            {TOTAL_GLOBAL_WEEKS} weeks · {PATH.length} phases · {totalDone}/{total} tasks
           </span>
+          {scheduledG === null && (
+            <>
+              <span className="m-atlas-footer-sep">·</span>
+              <button
+                type="button"
+                className="m-atlas-link"
+                title="Anchor W0 to today; future visits will show scheduled-vs-current drift"
+                onClick={() => {
+                  const today = new Date().toISOString().slice(0, 10)
+                  if (confirm(`Mark today (${today}) as the Blue W0 start? You can clear this later via Reset.`)) {
+                    setStartDate(today)
+                  }
+                }}
+              >
+                Mark W0 = today
+              </button>
+            </>
+          )}
           <span className="m-atlas-footer-sep">·</span>
           <button
             className="m-atlas-link m-atlas-link-danger"
             type="button"
             onClick={() => {
-              if (confirm('Wipe all atlas progress? This cannot be undone.')) reset()
+              if (confirm('Wipe all blue progress? This cannot be undone.')) reset()
             }}
           >
             Reset
@@ -280,8 +331,7 @@ export function AtlasTimeline() {
   )
 }
 
-// Compatibility re-export — old code may import { Atlas }.
-export const Atlas = AtlasTimeline
+export const Blue = BlueTimeline
 
 // ────────────────────────────────────────────────────────────────────────
 // Bedrock disclosure
@@ -298,15 +348,17 @@ function BedrockDisclosure({ open, onToggle }: { open: boolean; onToggle: () => 
       >
         <span className="m-atlas-bedrock-tag">Bedrock</span>
         <span className="m-atlas-bedrock-summary">
-          {BEDROCK_DOMAINS.length} immutable foundations · the spine of the spine
+          {BEDROCK_DOMAINS.length} immutable foundations · compiler theory + GPU + ML internals
         </span>
         <span className="m-atlas-bedrock-chev">{open ? '−' : '+'}</span>
       </button>
       {open && (
         <div className="m-atlas-bedrock-body">
           <p className="m-atlas-bedrock-intro">
-            These domains have ~10y+ half-lives. Frameworks rotate; bedrock does not. Anchor here when
-            anything else looks shaky. Read once, practice forever.
+            Blue is the compiler conversion. Atlas is the spine. These twelve domains are
+            what stays true across framework rotations. Blue assumes North gave you #5/#6/#7/#10;
+            Blue closes #2/#4/#8 (the compiler half) and deepens the rest. Re-anchor here when
+            anything else looks shaky during the 24 weeks.
           </p>
           <ol className="m-atlas-bedrock-list">
             {BEDROCK_DOMAINS.map((d) => (
@@ -328,7 +380,7 @@ function BedrockDisclosure({ open, onToggle }: { open: boolean; onToggle: () => 
           <div className="m-atlas-bedrock-footer">
             <div className="m-atlas-bedrock-living">
               <strong>Living layer</strong> — channels that stay current by being read, not by edits.
-              Subscribe + integrate weekly.
+              30 min/wk skim during the conversion.
             </div>
             <ul className="m-atlas-bedrock-living-list">
               {LIVING_LAYER.map((r) => (
@@ -352,7 +404,7 @@ function BedrockDisclosure({ open, onToggle }: { open: boolean; onToggle: () => 
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Timeline row — collapsed: dot + W{n} + phase title.  Expanded: full panel.
+// Timeline row
 // ────────────────────────────────────────────────────────────────────────
 
 function TimelineRow({
@@ -386,6 +438,12 @@ function TimelineRow({
 
   const phaseShort = phase.title.replace('Phase ', 'P').replace(/ — .*/, '')
   const phaseTail = phase.title.replace(/^Phase \d+ — /, '')
+
+  const hours = weekHours(week)
+  const dense = isDenseWeek(week)
+  const hoursLabel = hours > 0
+    ? (hours % 1 === 0 ? `≈${hours}h` : `≈${hours.toFixed(1)}h`)
+    : null
 
   return (
     <div
@@ -427,6 +485,19 @@ function TimelineRow({
             </span>
           </span>
         )}
+        {hoursLabel && (
+          <span
+            className={'m-atlas-tl-hours' + (dense ? ' m-atlas-tl-hours-dense' : '')}
+            title={dense ? `~${hours.toFixed(1)}h — dense week, expect to invoke the Wednesday-drop rule` : `~${hours.toFixed(1)}h scheduled`}
+          >
+            {hoursLabel}
+          </span>
+        )}
+        {dense && (
+          <span className="m-atlas-tl-dense-tag" title="Dense week — see context for which task to drop if you slip">
+            DENSE
+          </span>
+        )}
         {isPeriodStart && periodTasks.length > 0 && (
           <span className="m-atlas-tl-progress" title={`${periodDone}/${periodTasks.length}`}>
             <span className="m-atlas-tl-progress-fill" style={{ width: `${periodPct}%` }} />
@@ -457,7 +528,7 @@ function TimelineRow({
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Expanded panel — full Read / Build / Apply / Prep grid.
+// Expanded panel
 // ────────────────────────────────────────────────────────────────────────
 
 function ExpandedWeekPanel({
@@ -586,7 +657,7 @@ function ExpandedWeekPanel({
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Stream filter, ResourceRow, ReadingList, TaskCard — unchanged surface.
+// Stream filter / Reading list / Task card
 // ────────────────────────────────────────────────────────────────────────
 
 function StreamFilter({

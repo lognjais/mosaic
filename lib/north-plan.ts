@@ -89,7 +89,12 @@
  *   - GPU intuition is threaded through W2/W4 (NCU profile of the scheduler
  *     iteration), not bottled in W8. One Triton week is necessary, not enough.
  *   - North is not Atlas-lite. Atlas covers bedrock (math, OS, arch, compilers).
- *     North trusts that and runs flat-out on infra/serving for 12 weeks.
+ *     North trusts that and runs flat-out on infra/serving for 12 weeks. Each
+ *     week W1-W12 carries its OWN "Prerequisites" task at the top of its task
+ *     list that names the specific bedrock concepts the week depends on and
+ *     points at a remediation resource for each. Smooth: open the week, scan
+ *     the prereqs, fill any gap right there, execute. No global pre-flight
+ *     audit, no jumping between weeks.
  *   - Success metric for W12 is NOT "have an offer." It is "≥30% screen-rate
  *     across ≥45 applications + ≥3 referrer warm-intros + ≥1 onsite scheduled."
  *     Offers are downstream and partially out of your control.
@@ -496,6 +501,134 @@ const R = {
     halfLife: 'durable',
   } as Resource,
 
+  // ── Bedrock remediation (refresh resources for the 12 BEDROCK_DOMAINS) ─
+  karpathy_zerotohero: {
+    kind: 'video',
+    title: 'Karpathy — Neural Networks: Zero to Hero',
+    url: 'https://github.com/karpathy/nn-zero-to-hero',
+    hours: '~12h',
+    why: 'Highest-ROI refresh for backprop and attention. Type along; start with micrograd (2h) + "Let\'s build GPT" (2h).',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+  three_blue_one_brown_calc: {
+    kind: 'video',
+    title: '3Blue1Brown — Essence of Calculus',
+    url: 'https://www.youtube.com/playlist?list=PLZHQObOWTQDMsr9K-rj53DwVRMYO3t5Yr',
+    hours: '3h',
+    why: 'Chain rule + derivatives + integrals with visual intuition. Pair with the linalg playlist for the #1 math refresh.',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+  annotated_transformer: {
+    kind: 'blog',
+    title: 'Harvard NLP — The Annotated Transformer',
+    url: 'http://nlp.seas.harvard.edu/annotated-transformer/',
+    hours: '2h',
+    why: 'Attention Is All You Need with executable PyTorch alongside every equation. Re-anchors #10 attention-as-primitive after rust.',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+  boehm_matmul: {
+    kind: 'blog',
+    title: 'Simon Boehm — How to Optimize a CUDA Matmul Kernel',
+    url: 'https://siboehm.com/articles/22/CUDA-MMM',
+    hours: '1.5h',
+    why: 'The best end-to-end walkthrough of GPU memory hierarchy in action — SMEM tiling, occupancy, TC engagement. Touches #5, #6, #7 simultaneously.',
+    tier: 1,
+    halfLife: 'medium',
+  } as Resource,
+  hopper_whitepaper: {
+    kind: 'docs',
+    title: 'NVIDIA H100 / Hopper Architecture — whitepaper entry',
+    url: 'https://www.nvidia.com/en-us/data-center/h100/',
+    hours: '~1h',
+    why: 'Authoritative H100 numbers: peak FLOPs, HBM3 BW, L2/SMEM sizes, wgmma shapes. Memorize the numbers page (#5, #6, #7).',
+    tier: 1,
+    halfLife: 'medium',
+  } as Resource,
+  hopper_tuning_guide: {
+    kind: 'docs',
+    title: 'NVIDIA — Hopper Tuning Guide',
+    url: 'https://docs.nvidia.com/cuda/hopper-tuning-guide/index.html',
+    hours: '1h',
+    why: 'Tensor Core shape constraints + async pipeline (TMA, wgmma, mbarrier). The #6 anchor — when matmuls silently fall back to CUDA cores, this guide explains why.',
+    tier: 1,
+    halfLife: 'medium',
+  } as Resource,
+  williams_roofline: {
+    kind: 'paper',
+    title: 'Williams, Waterman, Patterson — Roofline: An Insightful Visual Performance Model',
+    url: 'https://dl.acm.org/doi/10.1145/1498765.1498785',
+    hours: '1h',
+    why: 'The original roofline paper (CACM 2009). §1-3 are enough; the diagnostic frame is the durable contribution (#7).',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+  ostep: {
+    kind: 'book',
+    title: 'OSTEP — Operating Systems: Three Easy Pieces',
+    url: 'https://pages.cs.wisc.edu/~remzi/OSTEP/',
+    hours: '~4h',
+    why: 'Free, canonical. Memory virtualization (chs 13-17) is the #3 anchor and pays off when reading PagedAttention.',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+  csapp_memory: {
+    kind: 'book',
+    title: 'CSAPP — chapter 6, The Memory Hierarchy (Bryant & O\'Hallaron)',
+    url: 'https://csapp.cs.cmu.edu/',
+    hours: '2h',
+    why: 'Caches, locality, false sharing — the #4 architecture refresh that grounds every perf intuition.',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+  drepper_memory: {
+    kind: 'paper',
+    title: 'Drepper — What Every Programmer Should Know About Memory (part 1)',
+    url: 'https://akkadia.org/drepper/cpumemory.pdf',
+    hours: '1h',
+    why: 'Companion to CSAPP ch 6. Part 1 alone is enough for the #4 refresh.',
+    tier: 2,
+    halfLife: 'durable',
+  } as Resource,
+  cpp_atomics: {
+    kind: 'video',
+    title: 'Sutter — atomic<> Weapons (talk + post)',
+    url: 'https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/',
+    hours: '2h',
+    why: 'The C++ memory model in one talk. #2 bedrock. DEFER for North (Triton is Python); revisit when writing CUDA C++ kernels.',
+    tier: 2,
+    halfLife: 'durable',
+  } as Resource,
+  cornell_6120: {
+    kind: 'course',
+    title: 'Cornell CS 6120 — Advanced Compilers (Adrian Sampson)',
+    url: 'https://www.cs.cornell.edu/courses/cs6120/',
+    hours: '~4h',
+    why: 'SSA, dataflow, IR design (lectures 1-4). The #8 refresh. DEFER for North; revisit with Triton/MLIR work.',
+    tier: 2,
+    halfLife: 'durable',
+  } as Resource,
+  yang_pytorch_internals: {
+    kind: 'blog',
+    title: 'Edward Yang — PyTorch Internals',
+    url: 'http://blog.ezyang.com/2019/05/pytorch-internals/',
+    hours: '1h',
+    why: 'Dispatcher, tensor strides, autograd graph. #11 backprop/autograd refresh after Karpathy.',
+    tier: 2,
+    halfLife: 'medium',
+  } as Resource,
+  paper_reading_method: {
+    kind: 'paper',
+    title: 'Keshav — How to Read a Paper (+ Schulman — ML Research)',
+    url: 'https://web.stanford.edu/class/ee384m/Handouts/HowtoReadPaper.pdf',
+    hours: '~1.5h',
+    why: 'Keshav 3-pass method + Schulman opinionated guide (joschu.net/blog/opinionated-guide-ml-research.html). #12 anchor — compounds across every paper.',
+    tier: 1,
+    halfLife: 'durable',
+  } as Resource,
+
   // ── Compute (free-first) ─────────────────────────────────────────────
   kaggle_gpu: {
     kind: 'docs',
@@ -745,6 +878,21 @@ export const PATH: Phase[] = [
           'A from-scratch generate() loop with an explicit KV cache running Llama-3-8B. Prefill vs decode profiled with numbers.',
         tasks: [
           {
+            id: 'n-w1-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W1',
+            body:
+              'Can you do these cold?\n' +
+              '  • attention(Q,K,V) + causal masking\n' +
+              '  • softmax + temperature + greedy/top-k/nucleus sampling\n' +
+              '  • PyTorch forward / no_grad\n' +
+              '  • why decode at batch=1 is HBM-bound, not compute-bound\n' +
+              'If any feel fuzzy, start the matching resource below alongside the reads — do NOT block the week.',
+            verify: 'Quick self-check; any gap-fill resource started (does not need to finish before reads)',
+            hours: '15m check + remediation in flight',
+            resources: [R.karpathy_zerotohero, R.annotated_transformer, R.kipperly_speed],
+          },
+          {
             id: 'n-w1-r1',
             track: 'read',
             title: 'PagedAttention paper §1–3',
@@ -856,6 +1004,19 @@ export const PATH: Phase[] = [
         goal:
           'A FastAPI server with /v1/chat/completions that streams tokens via SSE. Static batching across concurrent requests. Two known bugs documented.',
         tasks: [
+          {
+            id: 'n-w2-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W2',
+            body:
+              'Can you do these cold?\n' +
+              '  • async/await Python + async generators (for StreamingResponse)\n' +
+              '  • GPU memory hierarchy basics — HBM / L2 / SMEM, what NCU measures\n' +
+              'NCU itself is meant to feel partly foggy this week — that is the point. But you need the hierarchy intuition to read the report.',
+            verify: 'Quick self-check; if GPU memory hierarchy <3, watch GPU MODE lec 1 before b4',
+            hours: '15m check + remediation in flight',
+            resources: [R.gpu_mode, R.boehm_matmul, R.fastapi_docs],
+          },
           {
             id: 'n-w2-r1',
             track: 'read',
@@ -988,6 +1149,19 @@ export const PATH: Phase[] = [
           'A PagedKVManager class with block_size, num_blocks, alloc/free, and a block_table per sequence. Wire it into your engine. No fragmentation, OOM raised cleanly.',
         tasks: [
           {
+            id: 'n-w3-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W3',
+            body:
+              'Can you do these cold?\n' +
+              '  • virtual memory + page tables + TLB miss in your own words\n' +
+              '  • KV cache size formula + per-step growth (from W1-b1)\n' +
+              'PagedAttention is OS virtual memory applied to KV cache. If VM is rusty, do OSTEP below — most prereq-sensitive week of the sprint.',
+            verify: 'Quick self-check; OSTEP chs 13-17 read or re-skimmed if VM rating <3',
+            hours: '15m check + ~4h OSTEP if needed',
+            resources: [R.ostep],
+          },
+          {
             id: 'n-w3-r1',
             track: 'read',
             title: 'PagedAttention paper — full read this time',
@@ -1096,6 +1270,19 @@ export const PATH: Phase[] = [
         goal:
           'A scheduler that admits requests at every iteration, mixes prefill and decode in one step, and chunks long prefills. Throughput chart that beats W2 static batching by ≥ 3×.',
         tasks: [
+          {
+            id: 'n-w4-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W4',
+            body:
+              'Can you do these cold?\n' +
+              '  • roofline + arithmetic intensity — predict regime from shape+dtype+hardware\n' +
+              '  • iteration-level vs request-level scheduling (Orca r1 covers it; skim §1 first if scheduling theory feels alien)\n' +
+              '  • static-batching failure modes — head-of-line, gen-length variance (should be vivid from W2-a1)',
+            verify: 'Quick self-check; roofline remediation started before r1 if rating <3',
+            hours: '15m check + remediation in flight',
+            resources: [R.kipperly_speed, R.williams_roofline, R.orca],
+          },
           {
             id: 'n-w4-r1',
             track: 'read',
@@ -1586,6 +1773,20 @@ export const PATH: Phase[] = [
           'A Triton softmax and a Triton matmul-bias kernel within 70% of torch reference. One NCU report committed showing TC utilization on the matmul. One roofline writeup.',
         tasks: [
           {
+            id: 'n-w8-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W8',
+            body:
+              'Can you do these cold?\n' +
+              '  • H100 bandwidth pyramid (HBM3 ≈ 3.35 TB/s, L2 ≈ 50 MB, SMEM ≈ 228 KB/SM, regs ≈ 65k/SM)\n' +
+              '  • roofline reflex — the AI calculation you do in a1\n' +
+              '  • Tensor Core shape constraints (wgmma; when matmul falls back to CUDA cores)\n' +
+              'Dense week — gap-fills before the kernel builds save days mid-week.',
+            verify: 'Quick self-check; remediation started if any reflex rating <3',
+            hours: '15m check + remediation in flight',
+            resources: [R.hopper_whitepaper, R.boehm_matmul, R.kipperly_speed, R.hopper_tuning_guide],
+          },
+          {
             id: 'n-w8-r1',
             track: 'read',
             title: 'FlashAttention-2 paper §3',
@@ -1703,6 +1904,18 @@ export const PATH: Phase[] = [
         goal:
           'Either: a replica router with consistent hashing + per-replica queue + health checks, OR a 2-GPU TP implementation for a small model. Scaling chart in BENCHMARKS.md.',
         tasks: [
+          {
+            id: 'n-w9-prereq',
+            track: 'prep',
+            title: 'Prerequisites — verify before W9',
+            body:
+              'Can you do these cold?\n' +
+              '  • NCCL collectives — all-reduce (ring vs tree), all-gather, reduce-scatter\n' +
+              '  • tensor parallel for attention + MLP (Megatron row/column split — r1 covers it)',
+            verify: 'Quick self-check; NCCL remediation done if rating <3',
+            hours: '15m check + remediation in flight',
+            resources: [R.weng_train_large, R.nccl_docs, R.megatron_tp],
+          },
           {
             id: 'n-w9-r1',
             track: 'read',

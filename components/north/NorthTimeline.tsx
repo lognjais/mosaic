@@ -26,20 +26,13 @@ import {
 } from '../../lib/north-plan'
 import { useNorthProgress } from '../../lib/use-north-progress'
 
-const TRACKS: Track[] = ['read', 'build', 'apply', 'prep']
+const TRACKS: Track[] = ['prep', 'read', 'build', 'apply']
 const TRACK_LABEL: Record<Track, string> = {
   read: 'Read',
   build: 'Build',
   apply: 'Apply',
   prep: 'Prep',
 }
-const TRACK_ACCENT: Record<Track, string> = {
-  read: 'var(--m-track-architecture)',
-  build: 'var(--m-track-execution)',
-  apply: 'var(--m-track-foundations)',
-  prep: 'var(--m-track-compilers)',
-}
-
 const STREAM_FILTERS: ('all' | Stream)[] = ['all', 'systems', 'research']
 const TOTAL_GLOBAL_WEEKS = totalGlobalWeeks()
 const MAX_GLOBAL_WEEK = maxGlobalWeek()
@@ -189,7 +182,7 @@ export function NorthTimeline() {
   const visibleCtx = periodAtGlobalWeek(visibleG)
 
   return (
-    <div className="m-atlas m-atlas-tl-layout">
+    <div className="m-atlas m-atlas-tl-layout m-atlas-mono">
       <div className="m-atlas-tl-main">
         <header className="m-atlas-header">
           <div className="m-atlas-title-row">
@@ -198,73 +191,34 @@ export function NorthTimeline() {
           </div>
           <div className="m-atlas-stats">
             <span className="m-atlas-stat">
-              <strong>W{visibleG}</strong> / W{MAX_GLOBAL_WEEK}
+              <strong>W{visibleG}</strong>
+              {visibleCtx && <> · {visibleCtx.phase.title.replace(/^Phase \d+ — /, '')}</>}
             </span>
-            <span className="m-atlas-stat-sep">·</span>
-            <span className="m-atlas-stat">
-              <strong>{totalDone}</strong> / {total} tasks
-            </span>
-            <span className="m-atlas-stat-sep">·</span>
-            {visibleCtx && (
-              <span
-                className="m-atlas-stat m-atlas-stat-phase"
-                style={{ '--phase-color': visibleCtx.phase.color } as React.CSSProperties}
-              >
-                {visibleCtx.phase.title.replace('Phase ', 'P')}
-              </span>
-            )}
-            <span className="m-atlas-stat-sep">·</span>
-            {scheduledG === null ? (
-              <button
-                type="button"
-                className="m-atlas-link"
-                title="Anchor W0 to today; future visits will show scheduled-vs-current drift"
-                onClick={() => {
-                  const today = new Date().toISOString().slice(0, 10)
-                  if (confirm(`Mark today (${today}) as the W0 start? You can clear this later via Reset.`)) {
-                    setStartDate(today)
-                  }
-                }}
-              >
-                Mark W0 = today
-              </button>
-            ) : (
-              <span
-                className={
-                  'm-atlas-stat m-atlas-stat-scheduled' +
-                  (scheduledG > state.currentGlobalWeek
-                    ? ' m-atlas-stat-scheduled-behind'
-                    : scheduledG < state.currentGlobalWeek
-                      ? ' m-atlas-stat-scheduled-ahead'
-                      : '')
-                }
-                title={
-                  scheduledG > state.currentGlobalWeek
-                    ? `Behind schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
-                    : scheduledG < state.currentGlobalWeek
-                      ? `Ahead of schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
-                      : `On schedule: W${scheduledG}`
-                }
-              >
-                scheduled <strong>W{scheduledG}</strong>
-                {scheduledG !== state.currentGlobalWeek && (
-                  <span className="m-atlas-stat-scheduled-delta">
-                    {' '}
-                    ({scheduledG > state.currentGlobalWeek
-                      ? `+${scheduledG - state.currentGlobalWeek} behind`
-                      : `${state.currentGlobalWeek - scheduledG} ahead`})
-                  </span>
-                )}
-              </span>
-            )}
             <span className="m-atlas-stat-sep">·</span>
             <span className="m-atlas-stat">{overallPct}%</span>
+            {scheduledG !== null && scheduledG !== state.currentGlobalWeek && (
+              <>
+                <span className="m-atlas-stat-sep">·</span>
+                <span
+                  className={
+                    'm-atlas-stat m-atlas-stat-scheduled' +
+                    (scheduledG > state.currentGlobalWeek
+                      ? ' m-atlas-stat-scheduled-behind'
+                      : ' m-atlas-stat-scheduled-ahead')
+                  }
+                  title={
+                    scheduledG > state.currentGlobalWeek
+                      ? `Behind schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
+                      : `Ahead of schedule: should be on W${scheduledG}, currently on W${state.currentGlobalWeek}`
+                  }
+                >
+                  {scheduledG > state.currentGlobalWeek
+                    ? `${scheduledG - state.currentGlobalWeek}w behind`
+                    : `${state.currentGlobalWeek - scheduledG}w ahead`}
+                </span>
+              </>
+            )}
           </div>
-
-          <BedrockDisclosure
-            open={bedrockOpen}
-            onToggle={() => setBedrockOpen((x) => !x)}
-          />
         </header>
 
         <div className="m-atlas-tl">
@@ -337,8 +291,26 @@ export function NorthTimeline() {
           </button>
           <span className="m-atlas-footer-sep">·</span>
           <span className="m-atlas-stat">
-            {TOTAL_GLOBAL_WEEKS} weeks · {PATH.length} phases
+            {TOTAL_GLOBAL_WEEKS} weeks · {PATH.length} phases · {totalDone}/{total} tasks
           </span>
+          {scheduledG === null && (
+            <>
+              <span className="m-atlas-footer-sep">·</span>
+              <button
+                type="button"
+                className="m-atlas-link"
+                title="Anchor W0 to today; future visits will show scheduled-vs-current drift"
+                onClick={() => {
+                  const today = new Date().toISOString().slice(0, 10)
+                  if (confirm(`Mark today (${today}) as the W0 start? You can clear this later via Reset.`)) {
+                    setStartDate(today)
+                  }
+                }}
+              >
+                Mark W0 = today
+              </button>
+            </>
+          )}
           <span className="m-atlas-footer-sep">·</span>
           <button
             className="m-atlas-link m-atlas-link-danger"
@@ -350,9 +322,14 @@ export function NorthTimeline() {
             Reset
           </button>
         </footer>
-      </div>
 
-      <Minimap rows={rows} currentG={visibleG} onJump={(g) => expandAndScroll(g)} />
+        <div className="m-atlas-bedrock-after">
+          <BedrockDisclosure
+            open={bedrockOpen}
+            onToggle={() => setBedrockOpen((x) => !x)}
+          />
+        </div>
+      </div>
     </div>
   )
 }
@@ -638,36 +615,20 @@ function ExpandedWeekPanel({
         <StreamFilter stream={stream} onChange={setStream} counts={counts} />
       )}
 
-      <div className="m-atlas-cols">
+      <div className="m-atlas-stream">
         {TRACKS.map((track) => {
           const tasksInTrack = filtered.filter((t) => t.track === track)
-          if (tasksInTrack.length === 0) {
-            return (
-              <div key={track} className="m-atlas-col m-atlas-col-empty">
-                <div
-                  className="m-atlas-col-head"
-                  style={{ '--track-accent': TRACK_ACCENT[track] } as React.CSSProperties}
-                >
-                  <span className="m-atlas-col-label">{TRACK_LABEL[track]}</span>
-                  <span className="m-atlas-col-count">—</span>
-                </div>
-                <div className="m-atlas-col-empty-msg">nothing this {phase.cadence}</div>
-              </div>
-            )
-          }
+          if (tasksInTrack.length === 0) return null
           const doneInTrack = tasksInTrack.filter((t) => isDone(t.id)).length
           return (
-            <div key={track} className="m-atlas-col">
-              <div
-                className="m-atlas-col-head"
-                style={{ '--track-accent': TRACK_ACCENT[track] } as React.CSSProperties}
-              >
-                <span className="m-atlas-col-label">{TRACK_LABEL[track]}</span>
-                <span className="m-atlas-col-count">
+            <section key={track} className="m-atlas-stream-section">
+              <header className="m-atlas-stream-section-head">
+                <span className="m-atlas-stream-track">{TRACK_LABEL[track]}</span>
+                <span className="m-atlas-stream-count">
                   {doneInTrack}/{tasksInTrack.length}
                 </span>
-              </div>
-              <div className="m-atlas-col-body">
+              </header>
+              <div className="m-atlas-stream-body">
                 {tasksInTrack.map((task) => (
                   <TaskCard
                     key={task.id}
@@ -679,7 +640,7 @@ function ExpandedWeekPanel({
                   />
                 ))}
               </div>
-            </div>
+            </section>
           )
         })}
       </div>
@@ -697,45 +658,6 @@ function ExpandedWeekPanel({
         </button>
       </div>
     </div>
-  )
-}
-
-// ────────────────────────────────────────────────────────────────────────
-// Sticky vertical mini-map
-// ────────────────────────────────────────────────────────────────────────
-
-function Minimap({
-  rows,
-  currentG,
-  onJump,
-}: {
-  rows: Row[]
-  currentG: number
-  onJump: (g: number) => void
-}) {
-  return (
-    <aside className="m-atlas-mini" role="navigation" aria-label="Mini-map of the North sprint">
-      <div className="m-atlas-mini-rail">
-        {rows.map((r) => {
-          const isCurrent = r.g === currentG
-          return (
-            <button
-              key={r.g}
-              type="button"
-              className={
-                'm-atlas-mini-cell' +
-                (isCurrent ? ' m-atlas-mini-cell-current' : '') +
-                (r.isPhaseStart ? ' m-atlas-mini-cell-phase-start' : '')
-              }
-              style={{ '--phase-color': r.phase.color } as React.CSSProperties}
-              onClick={() => onJump(r.g)}
-              title={`W${r.g} · ${r.phase.title} · ${r.week.title}`}
-              aria-label={`Jump to W${r.g} — ${r.phase.title}`}
-            />
-          )
-        })}
-      </div>
-    </aside>
   )
 }
 
@@ -837,6 +759,7 @@ function TaskCard({
 }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(note)
+  const [notesOpen, setNotesOpen] = useState(note.length > 0)
   const stream = task.stream ?? 'core'
 
   return (
@@ -876,10 +799,6 @@ function TaskCard({
             {task.prereqs && task.prereqs.length > 0 && (
               <span className="m-atlas-task-prereq">↳ after {task.prereqs.join(', ')}</span>
             )}
-            {task.resources && task.resources.length > 0 && (
-              <span className="m-atlas-task-reslink">{task.resources.length} ref</span>
-            )}
-            <span className="m-atlas-task-id">{task.id}</span>
           </div>
         </button>
       </div>
@@ -902,22 +821,33 @@ function TaskCard({
               </ul>
             </div>
           )}
-          <div className="m-atlas-task-note">
-            <label className="m-atlas-task-note-label" htmlFor={`note-${task.id}`}>
-              Notes (saved locally)
-            </label>
-            <textarea
-              id={`note-${task.id}`}
-              className="m-atlas-task-note-input"
-              value={draft}
-              placeholder="Numbers, links, what you learned, what surprised you…"
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={() => {
-                if (draft !== note) onNoteChange(draft)
-              }}
-              rows={3}
-            />
-          </div>
+          {notesOpen ? (
+            <div className="m-atlas-task-note">
+              <label className="m-atlas-task-note-label" htmlFor={`note-${task.id}`}>
+                Notes (saved locally)
+              </label>
+              <textarea
+                id={`note-${task.id}`}
+                className="m-atlas-task-note-input"
+                value={draft}
+                placeholder="Numbers, links, what you learned, what surprised you…"
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={() => {
+                  if (draft !== note) onNoteChange(draft)
+                }}
+                rows={3}
+                autoFocus
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="m-atlas-task-note-toggle"
+              onClick={() => setNotesOpen(true)}
+            >
+              + Add note
+            </button>
+          )}
         </div>
       )}
     </div>

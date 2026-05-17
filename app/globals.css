@@ -4994,6 +4994,150 @@ h2.m-focus-h2.is-active {
 }
 
 /* ─────────────────────────────────────────────────────────
+   North minimal — single-column stream + neutral chrome.
+   Applied via .m-atlas-mono on the timeline root. Strips
+   per-phase color from spine/dots/panels, collapses the
+   4-col track grid into one vertical stream, hides
+   developer-facing task IDs + ref-count badges, and puts
+   per-task notes behind a button so empty textareas don't
+   crowd every expanded task.
+   ───────────────────────────────────────────────────────── */
+
+/* Reclaim the right gutter (minimap removed) */
+.m-atlas-mono.m-atlas-tl-layout {
+  padding-right: 0;
+}
+
+/* Single-column stream replaces the 4-col grid in expanded panels */
+.m-atlas-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.m-atlas-stream-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.m-atlas-stream-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.2rem 0 0.4rem;
+  border-bottom: 1px solid var(--m-border);
+}
+.m-atlas-stream-track {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--m-fg-muted);
+}
+.m-atlas-stream-count {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  color: var(--m-fg-dim);
+}
+.m-atlas-stream-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Hide developer-facing metadata on task cards (task ID, ref count) */
+.m-atlas-mono .m-atlas-task-id,
+.m-atlas-mono .m-atlas-task-reslink {
+  display: none;
+}
+
+/* Neutralise phase-color chrome — keep phase tag tinted (so phases are still
+   distinguishable as a label) but spine, dots, dividers, panel borders, and
+   progress bars all use a single neutral hue derived from --m-fg. */
+.m-atlas-mono .m-atlas-tl::before {
+  background: color-mix(in srgb, var(--m-fg) 14%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-row {
+  --phase-color: color-mix(in srgb, var(--m-fg) 40%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-node:hover {
+  background: color-mix(in srgb, var(--m-fg) 3%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-node-open {
+  background: color-mix(in srgb, var(--m-fg) 5%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-dot {
+  background: color-mix(in srgb, var(--m-fg) 14%, var(--m-bg));
+  border-color: color-mix(in srgb, var(--m-fg) 38%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-node:hover .m-atlas-tl-dot {
+  background: color-mix(in srgb, var(--m-fg) 28%, var(--m-bg));
+  border-color: color-mix(in srgb, var(--m-fg) 60%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-node-done .m-atlas-tl-dot {
+  background: color-mix(in srgb, var(--m-fg) 70%, var(--m-bg));
+  border-color: color-mix(in srgb, var(--m-fg) 70%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-node-open .m-atlas-tl-dot {
+  background: var(--m-fg);
+  border-color: var(--m-fg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--m-fg) 10%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-phase-divider::after {
+  background: color-mix(in srgb, var(--m-fg) 12%, transparent);
+}
+.m-atlas-mono .m-atlas-tl-phase-divider-tag {
+  background: color-mix(in srgb, var(--m-fg) 7%, transparent);
+  color: var(--m-fg-muted);
+}
+.m-atlas-mono .m-atlas-tl-phase-tag {
+  background: color-mix(in srgb, var(--m-fg) 8%, transparent);
+  color: var(--m-fg-muted);
+}
+.m-atlas-mono .m-atlas-tl-panel {
+  border: 1px solid var(--m-border);
+  border-left: 2px solid color-mix(in srgb, var(--m-fg) 32%, transparent);
+  background: var(--m-bg-soft);
+}
+.m-atlas-mono .m-atlas-tl-progress-fill {
+  background: color-mix(in srgb, var(--m-fg) 55%, transparent);
+}
+.m-atlas-mono .m-atlas-week-progress-fill {
+  background: color-mix(in srgb, var(--m-fg) 55%, transparent);
+}
+.m-atlas-mono .m-atlas-stat-phase {
+  background: color-mix(in srgb, var(--m-fg) 7%, transparent);
+  color: var(--m-fg-muted);
+}
+.m-atlas-mono .m-atlas-bedrock-tag {
+  background: color-mix(in srgb, var(--m-fg) 8%, transparent);
+  color: var(--m-fg-muted);
+}
+
+/* Bedrock disclosure relocated below the footer — minor breathing room */
+.m-atlas-bedrock-after {
+  margin-top: 1.8rem;
+}
+
+/* Notes-behind-button toggle */
+.m-atlas-task-note-toggle {
+  background: transparent;
+  border: 0;
+  color: var(--m-fg-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0.25rem 0;
+  text-decoration: underline;
+  text-decoration-color: var(--m-fg-dim);
+  text-underline-offset: 2px;
+  align-self: flex-start;
+  margin-top: 0.4rem;
+  font-family: inherit;
+}
+.m-atlas-task-note-toggle:hover {
+  color: var(--m-fg);
+}
+
+/* ─────────────────────────────────────────────────────────
    Mobile (≤ 640px) — vertical-stack timeline rows, tighten chrome.
    ───────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
@@ -5369,7 +5513,9 @@ h2.m-focus-h2.is-active {
   line-height: 1.4;
 }
 .m-atlas-resource-hours {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
   color: var(--m-fg-muted);
@@ -5377,6 +5523,7 @@ h2.m-focus-h2.is-active {
   padding: 0.1rem 0.4rem;
   border-radius: 0.22rem;
   margin-top: 0.05rem;
+  overflow-wrap: anywhere;
 }
 
 /* Reading list footer (per period) */
