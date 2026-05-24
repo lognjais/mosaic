@@ -1,0 +1,183 @@
+---
+title: OpenRLHF & NeMo-RL Internals
+description: The two production RL stacks beyond verl — OpenRLHF (cleanest open codebase, easiest contributor on-ramp) and NeMo-RL (NVIDIA, Megatron-grade scale).
+last_reviewed: 2026-05-25
+---
+# OpenRLHF & NeMo-RL Internals
+
+<Mode is="learn">
+
+verl is where the latest research lands. OpenRLHF is where you'll find the *cleanest* open codebase — easier to read end-to-end, easier to land a first PR. NeMo-RL is NVIDIA's stack with Megatron-grade distributed training and the published 2.5× speedup paper. All three matter. This lesson is the rest of the production RL landscape — what each is good at, when to pick which, and where the contribution opportunities are.
+
+## TL;DR
+
+- **OpenRLHF** (~150 contributors, very active): the cleanest Ray-based open RL trainer. Built around vLLM rollouts and Hugging Face models. Recommended *first* RL framework to read.
+- **NeMo-RL** (NVIDIA): production-scale with Megatron parallelism (TP + PP + EP). Hardest to learn, most powerful at large scale. 2.5× speedup paper from NVIDIA AI Foundations.
+- **TRL** (Hugging Face): the *easiest* on-ramp; not Ray-based; single-node focus. Read TRL first if you've never touched RL code. Don't use it at scale.
+- **Other notables**: trlx (CarperAI, mostly archived); Levanter / Marin (Stanford, JAX); AReaL (Tsinghua, async-focused); Hugging Face Open-R1 (recipe-focused, not framework).
+- **How to pick**: read OpenRLHF first → graduate to verl for current research → reach for NeMo-RL at thousand-GPU scale.
+
+## Why this matters
+
+A serious RL-systems engineer can read all three. The patterns overlap (Ray, single-controller, FSDP+vLLM split), but each has its own conventions. Multi-framework fluency makes you portable across companies.
+
+## OpenRLHF
+
+**The pitch**: open-source production-grade RLHF, with the cleanest code in the space. Ray actors, vLLM rollouts, FSDP-2 trainers. Made by 50+ contributors across academia/industry.
+
+**Layout:**
+```
+OpenRLHF/
+├── openrlhf/
+│   ├── trainer/
+│   │   ├── ray/             # Ray-actor implementations
+│   │   │   ├── ppo_actor.py     # PPO trainer Ray actor
+│   │   │   ├── vllm_engine.py   # rollout integration
+│   │   │   └── launcher.py      # cluster orchestration
+│   │   ├── ppo_trainer.py   # single-node PPO
+│   │   └── dpo_trainer.py
+│   ├── models/              # model + LM head + value head wrappers
+│   ├── datasets/
+│   └── utils/
+├── examples/
+│   └── scripts/             # canonical command-line recipes
+└── tests/
+```
+
+**Reading order for the first 3 days:**
+1. `examples/scripts/train_ppo_llama_ray.sh` — the canonical Ray-based PPO recipe.
+2. `openrlhf/trainer/ray/launcher.py` — how all the actors get launched.
+3. `openrlhf/trainer/ray/ppo_actor.py` — the policy actor (FSDP, gradient compute).
+4. `openrlhf/trainer/ray/vllm_engine.py` — rollout integration.
+5. `openrlhf/models/actor.py` — policy + value head wrapping.
+
+**Contribution opportunities** (typical merge time 3-7 days):
+- A new sampling parameter passthrough.
+- A new dataset loader in `openrlhf/datasets/`.
+- Documentation improvements (very accepted).
+- A new verifier / reward function.
+- Fix a vLLM integration edge case.
+
+The maintainers actively engage with new contributors; #openrlhf on the OpenRLHF Discord is responsive.
+
+## NeMo-RL
+
+**The pitch**: NVIDIA's production RL stack, built on Megatron-LM for the trainer. Designed for thousand-GPU scale. The published 2.5× speedup (NVIDIA blog, 2025) over previous RL frameworks demonstrates the engineering depth.
+
+**Architecture (different from verl/OpenRLHF):**
+- Trainer uses **Megatron-LM** (TP + PP + EP + DP, not just FSDP). Crucial for 70B+ models.
+- Rollouts use **TensorRT-LLM** or vLLM (configurable).
+- Reward model can be a separate service or a Megatron-served model.
+- Designed for NVIDIA SuperPOD / NeMo Framework integration; less plug-and-play for general infra.
+
+**When to pick**: model size > 70B, training cluster > 256 GPUs, NVIDIA hardware exclusively. For smaller models or non-NVIDIA setups, the operational complexity isn't worth it.
+
+**Contribution surface**: smaller than verl/OpenRLHF because the codebase has tighter coupling to NVIDIA frameworks. PR review by NVIDIA staff. Bar is higher; visibility is also higher.
+
+## TRL (Hugging Face)
+
+**The pitch**: the *easiest* RL-training library. Not Ray-based. Designed for single-node, accessibility, and inclusion in HF tutorials. Used in 90% of "I tried RLHF in a notebook" demos.
+
+**When to use**: 
+- Learning. Read the PPO and GRPO trainers as plain Python before tackling Ray-based frameworks.
+- Single-node experiments < 7B.
+- Quick prototyping.
+
+**When NOT to use**: any production setup beyond single-node. TRL's distributed support is improving but is not the strength of the project.
+
+**Key files**:
+- `trl/trainer/ppo_trainer.py` — the cleanest reference PPO-for-LLM implementation in any open codebase.
+- `trl/trainer/grpo_trainer.py` — GRPO implementation.
+- `trl/trainer/dpo_trainer.py` — DPO.
+
+## Comparison table
+
+| Framework | Best for | Backend | Distributed | Code clarity | Contributor pace |
+| --- | --- | --- | --- | --- | --- |
+| **TRL** | Learning, single-node | FSDP / Accelerate | Limited | Highest | Fast review |
+| **OpenRLHF** | Production small-medium scale, learning Ray patterns | FSDP + vLLM via Ray | Yes | High | Fast (3-7d) |
+| **verl** | Current research, GRPO+RLVR, large scale | FSDP/Megatron + vLLM/SGLang | Yes | Medium | Medium (5-14d) |
+| **NeMo-RL** | Largest scale, NVIDIA stack | Megatron + TRT-LLM | Yes | Medium | Slow (NVIDIA review) |
+
+## Key takeaways
+
+1. **OpenRLHF is the easiest production-grade RL codebase to read.** Start here.
+2. **TRL is the gateway drug.** Read TRL's PPO trainer before any Ray-based code.
+3. **NeMo-RL is for thousand-GPU NVIDIA-only setups.** Higher bar, higher prestige.
+4. **Multi-framework fluency is the differentiator.** Frontier-lab interviews probe "have you read X's code?"
+5. **First PR targets are the same across frameworks**: verifier function, sampling param, recipe config, dataset loader.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'repo', href: 'https://github.com/OpenRLHF/OpenRLHF', title: 'OpenRLHF', note: 'Read openrlhf/trainer/ray/ppo_actor.py first.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2405.11143', title: 'Hu et al. — OpenRLHF: An Easy-to-use, Scalable RLHF Framework', author: 'Hu et al. (2024)', note: 'The OpenRLHF paper. Section 3 is the Ray architecture.' },
+    { kind: 'repo', href: 'https://github.com/NVIDIA/NeMo-RL', title: 'NVIDIA NeMo-RL', note: 'NVIDIA\'s open RL stack. Tightly coupled to NeMo Framework.' },
+    { kind: 'blog', href: 'https://developer.nvidia.com/blog/nvidia-nemo-2-5x-faster-rlhf/', title: 'NVIDIA — NeMo 2.5× faster RLHF', note: 'The speedup announcement. Reading this gives you the architecture choices NVIDIA made.' },
+    { kind: 'repo', href: 'https://github.com/huggingface/trl', title: 'HuggingFace TRL', note: 'Cleanest reference RL-trainer code. Start with trainer/ppo_trainer.py and grpo_trainer.py.' },
+    { kind: 'docs', href: 'https://huggingface.co/docs/trl/index', title: 'TRL docs', note: 'API reference. Pair with the source files.' },
+    { kind: 'repo', href: 'https://github.com/inclusionAI/AReaL', title: 'AReaL (Tsinghua)', note: 'Async-RL-first framework. Less mature, interesting architectural ideas.' },
+    { kind: 'repo', href: 'https://github.com/stanford-crfm/levanter', title: 'Levanter (Stanford)', note: 'JAX/TPU-focused RL+pretrain. Different ecosystem; worth knowing if you might work at Google.' },
+  ]}
+/>
+
+</Mode>
+
+<Mode is="reference">
+
+## TL;DR
+
+- TRL = easiest, single-node, learning.
+- OpenRLHF = cleanest production Ray RL.
+- verl = current research, GRPO+RLVR.
+- NeMo-RL = NVIDIA, 1K+ GPU scale.
+
+## Why this matters
+
+Multi-framework fluency = portable RL engineer.
+
+## Concrete walkthrough
+
+**Decision tree:**
+
+```
+Are you learning RL code for the first time?
+  YES → TRL (single-node, plain PyTorch)
+  NO ↓
+
+Production / research / scale?
+  PRODUCTION small-medium → OpenRLHF
+  RESEARCH (GRPO, RLVR, latest)  → verl  
+  PRODUCTION 70B+ NVIDIA only    → NeMo-RL
+```
+
+**Where the maintainers actually look at PRs (April 2026):**
+
+| Framework | Active maintainer count | Median review time |
+| --- | --- | --- |
+| TRL | ~6 core (HF) | 2-5 days |
+| OpenRLHF | ~10 active | 3-7 days |
+| verl | ~15 active (ByteDance + ext.) | 5-14 days |
+| NeMo-RL | NVIDIA team (small) | 14+ days |
+
+## Key takeaways
+
+1. Start with TRL to learn.
+2. OpenRLHF for production patterns.
+3. verl for current research.
+4. NeMo-RL for largest scale.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'repo', href: 'https://github.com/OpenRLHF/OpenRLHF', title: 'OpenRLHF' },
+    { kind: 'repo', href: 'https://github.com/huggingface/trl', title: 'TRL' },
+    { kind: 'repo', href: 'https://github.com/NVIDIA/NeMo-RL', title: 'NeMo-RL' },
+  ]}
+/>
+
+</Mode>
+
+<LessonComplete />

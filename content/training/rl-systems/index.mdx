@@ -1,0 +1,28 @@
+---
+title: RL Systems & Infrastructure
+description: The distributed-systems engineering behind every modern post-training run — rollout engines, Ray architectures, verl, OpenRLHF, NeMo-RL, async staleness.
+last_reviewed: 2026-05-25
+---
+# RL Systems & Infrastructure
+
+A GRPO update fits on a postcard. Running that update over millions of rollouts on 64 GPUs is what makes RL infrastructure engineers six-figure scarce. This module is the engineering you'd actually do at Anthropic's RL Engineering team, OpenAI post-training, or DeepSeek: rollout engines, distributed orchestration, the production frameworks, and the subtle off-policy bugs that bite at scale.
+
+<ModuleProgress
+  lessons={[
+    { slug: '/training/rl-systems/rollout-engines', title: 'Rollout Engines (vLLM as RL Backend)', estMin: 14 },
+    { slug: '/training/rl-systems/distributed-rl-ray', title: 'Distributed RL & Ray Architectures', estMin: 16 },
+    { slug: '/training/rl-systems/verl-internals', title: 'verl Internals', estMin: 18 },
+    { slug: '/training/rl-systems/openrlhf-internals', title: 'OpenRLHF & NeMo-RL Internals', estMin: 16 },
+    { slug: '/training/rl-systems/async-rl-staleness', title: 'Async RL & Off-Policy Staleness', estMin: 14 },
+  ]}
+/>
+
+<Capstone
+  title="Reproduce DeepSeek-R1-Zero on a 1B model"
+  pitch="The artifact that gets you the Anthropic RL Engineering interview. Build the full stack: trainer, rollout engine, verifier service, scheduler — and train a 1B model on GSM8K math until it spontaneously says 'wait, let me reconsider'."
+  what="Stand up verl or OpenRLHF on 2–4 rented A100s. Wire vLLM as the rollout engine. Build a small verifier service (math parser + code sandbox). Run GRPO on Qwen2.5-1B-Instruct over GSM8K and MATH. Track wall-clock, rollouts/sec, KV reuse, on-policy gap. Ship BENCHMARKS.md with the numbers. Publish the recipe as a blog post — this is what Anthropic recruiters reply to."
+  sota={['verl (volcengine)', 'OpenRLHF', 'vLLM as rollout backend', 'firejail / Bubblewrap for code sandbox', 'Modal or RunPod for the GPUs']}
+  device="gpu"
+  time="3-4 weekends"
+  level="advanced"
+/>

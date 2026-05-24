@@ -13,21 +13,40 @@
  * Mission:
  *   Senior SWE  →  LLM Inference / AI Systems Engineer in ~12 weeks.
  *
- * Strategy:
- *   1. Ship THREE deep flagship portfolio projects, each with measured numbers.
+ * Strategy (revised 2026-05-25 after deep-research convergence + Atlas alignment):
+ *   1. Ship TWO deep flagship portfolio projects + one optional:
  *      P1: mini-vLLM         — paged KV cache, continuous batching, OpenAI API,
  *                              one accelerator (quant OR specdec), in-loop NCU
- *                              profiling baked in from W2 onward.
- *      P2: ai-gateway        — model router, cost/latency-aware, OTel, cache,
- *                              rate limiting, multi-tenant safety. Two weeks
- *                              (W6 core + W7 hardening), not one.
- *      P3: dist-inference    — TP or multi-worker replica serving, scaling bench.
- *      (Applied AI side-quest: a 2-day RAG demo lives inside W7 to add breadth,
- *       NOT as a flagship. RAG is Applied-AI signal, not Inference-Engineer
- *       signal, and a hand-wavy flagship dilutes the lane message.)
- *   2. Land ≥1 merged OSS PR in a real serving project (vLLM / SGLang / TGI / llama.cpp).
+ *                              profiling baked in from W2 onward. THE centerpiece.
+ *      P2: merged vLLM / SGLang PR — promoted from "side goal" to *flagship*.
+ *                              The hiring manager at Anthropic / Together / Modal
+ *                              opens GitHub before they open your résumé. Aim:
+ *                              design-comment-acked PR open by W6; FIRST PR merged
+ *                              by W8; THREE PRs by W12 (vLLM ≥ 1, SGLang ≥ 1,
+ *                              third one anywhere — FlashInfer, Triton, llama.cpp).
+ *      P3-optional: dist-inference — TP or multi-worker replica serving, scaling
+ *                              bench. Keep if W1-W10 ran on schedule; drop if W6
+ *                              slipped. RL-systems pivot (Atlas Year-1) uses this
+ *                              W9-W10 slot for a GRPO trainer with mini-vLLM as
+ *                              rollout backend — read /training/rl-systems/rollout-engines
+ *                              before deciding.
+ *      DEMOTED:    ai-gateway   — was a flagship; now an OPTIONAL side-week
+ *                              artifact. ai-gateway is a *product-engineer* signal,
+ *                              not an *inference-engineer* signal. The lane message
+ *                              matters more than the artifact count. Keep W6-W7
+ *                              ai-gateway code as a portfolio side-bullet only;
+ *                              do NOT lead résumé with it.
+ *      (Applied AI side-quest: 2-day RAG demo in W7 stays as breadth bullet.)
+ *   2. **Anthropic Fellows Program — PARALLEL APPLICATION TRACK from W4.**
+ *      Remote, no-PhD, no-prior-ML required. $3,850/wk + $15K/mo compute. ~40%
+ *      FTE conversion. The single highest-EV credential available without a PhD,
+ *      especially for an India-based candidate where US-onsite loops are slow.
+ *      Apply during W4-W6 window; pitch an RL post-training or interpretability
+ *      project. Worst case: rejected, North proceeds. Best case: skip the funnel.
  *   3. Build a system-design library of 5 one-pagers for interviews.
- *   4. Open 25+ targeted outreach threads. Convert.
+ *   4. Open 25+ targeted outreach threads. Convert. Bias 70/30 toward India-remote-
+ *      friendly orgs in cycle 1 (Anthropic, Together, Modal, Anyscale, Sarvam,
+ *      Krutrim, NVIDIA-India, Perplexity, Cohere); US-onsite is cycle 2.
  *
  * Compute posture — FREE FIRST, paid only for headline numbers:
  *   - Kaggle Notebooks  — 30h/wk on dual T4 (32 GB total via 2× T4). The default
@@ -1382,10 +1401,24 @@ export const PATH: Phase[] = [
           {
             id: 'n-w4-p2',
             track: 'prep',
-            title: 'Leetcode — 4 mediums',
-            verify: '4 mediums solved',
+            title: 'Leetcode — 4 mediums (DROP if behind on Wed)',
+            body:
+              'Lowered priority post-2026-05-25 revision. Inference-engineer loops are systems-design + kernels, not arrays-and-strings. Drop this entire bucket if any spine task is at risk.',
+            verify: '4 mediums solved — only if read+build+apply spine is on track',
             hours: '2h',
             resources: [R.neetcode],
+          },
+          {
+            id: 'n-w4-a3',
+            track: 'apply',
+            title: 'Anthropic Fellows Program — application started (parallel track)',
+            body:
+              'The asymmetric hedge. Remote, no-PhD, no-prior-ML required, $3,850/week stipend + ~$15K/month compute, ~40% FTE conversion. The 2026 Fellows cycle pages are at alignment.anthropic.com — check open dates. Pitch ONE concrete project, 1 page max:\n' +
+              '  (a) preferred angle: RL post-training infrastructure project (rollout engine, async RL, verifier scaling) — leverages your inference work directly;\n' +
+              '  (b) alternate: mechanistic interpretability scaling project — Neel Nanda\'s prereq syllabus is the entry path.\n' +
+              'Frame your mini-vLLM + scheduler work as the credibility evidence. The W4 BENCHMARKS chart you just shipped is the artifact to link. Worst case: rejected, North proceeds. Best case: you skip the entire job funnel.',
+            verify: 'Application draft 1 written; one Anthropic Fellows alum DM\'d for review; submit by W6.',
+            hours: '2h',
           },
         ],
         reading: [R.orca, R.sarathi_serve, R.vllm_repo, R.sglang_repo],
@@ -1519,25 +1552,53 @@ export const PATH: Phase[] = [
   // ════════════════════════════════════════════════════════════════════
   {
     id: 'n-phase-6',
-    title: 'Phase 6 — AI Gateway · Part 1',
-    blurb: 'Project 2, week 1 of 2. Skeleton + routing + fallback + retry + cost ledger.',
+    title: 'Phase 6 — OSS PR push (primary) + ai-gateway (optional)',
+    blurb: 'PRIMARY DELIVERABLE: a vLLM or SGLang design-comment-acked PR open by Friday. ai-gateway lives this week only if W5 finished clean.',
     year: 0,
     cadence: 'week',
     color: 'var(--m-track-architecture)',
-    artifact: 'ai-gateway v0.1 — Python service routing OpenAI/Anthropic/local mini-vllm with fallback + cost',
+    artifact: 'A design-comment-acked PR open in vLLM or SGLang by Friday EOD — THE W6 deliverable. ai-gateway v0.1 only if time permits after the PR is open.',
     context:
-      'Every serious AI product has a gateway in front of model providers. The original plan crammed skeleton + routing + cache + OTel + rate limit + cost ledger into one week — fiction. It is now two weeks: W6 = correctness spine (skeleton, routing, retry, fallback, cost). W7 = hardening (semantic cache, OTel/Jaeger, rate limit, polish + 2-day applied-AI side-quest). Your mini-vllm becomes the local backend; expect to find bugs in it this week and patch them.',
+      '⚠ REVISED 2026-05-25. The original plan had ai-gateway as the W6 flagship; deep research convergence + a re-read of your own oss-contribution-playbook ("a landed merge PR beats a half-built clone") demanded inversion. The single highest-leverage artifact this week is a design comment with maintainer ack on a real vLLM / SGLang issue. mini-vllm exists to give you codebase fluency; the *contribution* is what hiring managers click on. ai-gateway is demoted to OPTIONAL — keep it as a portfolio side-bullet, not a flagship. The week\'s shape: 1) finish the OSS scouting list from W3, pick ONE issue with a recently-active maintainer; 2) write a 200-400 word design comment per the playbook; 3) wait for ack while implementing; 4) only AFTER the PR is open, spend remaining time on a minimal ai-gateway skeleton.',
     weeks: [
       {
         number: 6,
-        title: 'Gateway core — routing, fallback, cost',
+        title: 'Open the vLLM/SGLang PR — then maybe ai-gateway',
         goal:
-          'A single service that exposes /v1/chat/completions, routes across three providers with intelligent fallback, retries on 429/5xx, tracks per-request cost.',
+          'PRIMARY: a design-comment with maintainer ack on a real vLLM or SGLang issue by Friday EOD; implementation in flight; PR open. SECONDARY: ai-gateway v0.1 skeleton if time remains.',
         tasks: [
+          {
+            id: 'n-w6-oss1',
+            track: 'apply',
+            title: 'OSS PR step 1: codebase tour + issue selection (per the playbook)',
+            body:
+              'Re-read /applied/inference-internals/oss-contribution-playbook (your own work). Pick ONE project: vLLM is highest visibility but slowest review (1-3w); SGLang is faster review (3-10d) and smaller maintainer team. Then pick ONE issue with three filters: (a) the tagging maintainer reviewed PRs in the last 7 days, (b) scope <200 LOC realistic, (c) you can write a 1-paragraph design before coding. Aim for new-model-architecture, sampling-param exposure, or scheduler-policy tweaks — these are the playbook\'s "lands easily" zones.',
+            verify: 'docs/oss-pr-selection.md: project chosen, issue link, maintainer activity proof (PRs in last 7d), 3-filter scoring sheet',
+            hours: '2h',
+            resources: [R.vllm_repo, R.sglang_repo],
+          },
+          {
+            id: 'n-w6-oss2',
+            track: 'apply',
+            title: 'OSS PR step 2: write the design comment',
+            body:
+              '200-400 words. What you propose, scope estimate, test plan, benchmark methodology, links to relevant existing files. Post on the issue. The design comment is the artifact maintainers triage on — and the cheapest signal to them that you\'ve read the code. Wait for ack before writing implementation code. Use ack-wait time on n-w6-oss3 implementation skeleton, OR on ai-gateway if PR scope is small.',
+            verify: 'Design comment posted on the issue thread; URL committed to docs/oss-pr-selection.md',
+            hours: '2h',
+          },
+          {
+            id: 'n-w6-oss3',
+            track: 'build',
+            title: 'OSS PR step 3: implementation in branch (after ack)',
+            body:
+              'Once maintainer acks the design: implement on a feature branch in your fork. Match the project\'s existing conventions exactly (lint, naming, tests). Benchmarks for any perf claim. Open the PR by Friday EOD even if not yet merge-ready; the *open* PR is the W6 deliverable. Subsequent review iterations land in W7-W8.',
+            verify: 'PR opened against vllm-project/vllm or sgl-project/sglang. URL in docs/oss-pr-selection.md.',
+            hours: '6-10h',
+          },
           {
             id: 'n-w6-r1',
             track: 'read',
-            title: 'LiteLLM Router — read the source',
+            title: 'LiteLLM Router — read the source (only if PR opened by Wed)',
             body:
               'Specifically `litellm/router.py`. Understand the routing strategies (least-busy, weighted, latency-based), the cooldown logic, the fallback chain.',
             verify: 'docs/litellm-router-notes.md with the four routing strategies summarized',
@@ -1556,12 +1617,12 @@ export const PATH: Phase[] = [
           {
             id: 'n-w6-b1',
             track: 'build',
-            title: 'ai-gateway skeleton — FastAPI, three providers, one route',
+            title: 'ai-gateway skeleton — OPTIONAL, only if OSS PR is open by Wed',
             body:
-              'Single endpoint /v1/chat/completions. Provider abstraction with three impls: OpenAI, Anthropic, local-vllm (your W5). Config-driven model list. Streaming pass-through (do not buffer the SSE stream for V1).',
+              'Demoted from W6 spine to optional after 2026-05-25 revision. Build only if the OSS PR is design-comment-acked and in progress by Wednesday. Single endpoint /v1/chat/completions. Provider abstraction with three impls: OpenAI, Anthropic, local-vllm (your W5). Config-driven model list. Streaming pass-through. Otherwise — skip. The OSS PR is the lane signal; ai-gateway is decoration.',
             verify:
-              'Same request hits all three providers via `model=` switch; OpenAI-compatible response shape; streaming works against your local mini-vllm',
-            hours: '4h',
+              'OPTIONAL: same request hits all three providers via `model=` switch. Skip entirely if PR work is behind.',
+            hours: '0-4h (depends on PR progress)',
           },
           {
             id: 'n-w6-b2',
@@ -2312,6 +2373,23 @@ export const PATH: Phase[] = [
               'DSA NOTE: this sprint deliberately under-prepares DSA (~40 mediums total, ~22h) because Tier A/B target companies value portfolio over Leetcode. IF month 4+ surfaces Tier C interest (frontier-lab phone screens — OpenAI/Anthropic/DeepMind), schedule a 2-week DSA surge BEFORE onsite: ~50 more mediums, ~10 hards, 2 mock interviews/wk. Tier C onsites assume 200-300 problems; cramming after a phone screen is the realistic path.',
             verify: 'docs/next-90.md committed; if applicable, DSA-surge plan documented as a contingency block',
             hours: '1.5h',
+          },
+          {
+            id: 'n-w12-next',
+            track: 'prep',
+            title: 'Next chapter — point yourself at the RL curriculum',
+            body:
+              'When you land the inference role (or even just before, while you wait for replies): the next 6-12 months are about becoming the RL-systems engineer who happens to start as an inference engineer. The full curriculum is already written and waiting in the Mosaic training track:\n\n' +
+              '  • /training/rl-foundations — MDPs, policy gradient, value/advantage/GAE, trust regions & KL. The math you cannot skip. (~4 weeks)\n' +
+              '  • /training/post-training — RLHF pipeline, reward modeling, PPO deep-dive, DPO/GRPO, RLVR. (~6 weeks)\n' +
+              '  • /training/rl-systems — rollout engines (vLLM as RL backend — directly extends your mini-vllm!), Ray architectures, verl/OpenRLHF/NeMo-RL internals, async RL & staleness. (~5 weeks)\n' +
+              '  • /training/rl-frontier — reasoning models (R1/o1/o3), process reward models, agentic RL, reward hacking + RLAIF + Constitutional AI, self-play/curriculum/code RL. (~5 weeks)\n' +
+              '  • Capstones: GRPO trainer with your mini-vllm as rollout engine; reproduce R1-Zero on a 1B model; agentic RL loop end-to-end.\n\n' +
+              'Concrete first steps after the W12 retro: (1) read DeepSeek-R1 paper end-to-end; (2) clone verl + OpenRLHF + TRL, build all three; (3) start the rl-foundations track at /training/rl-foundations/mdp-bellman. Once at your new inference role, volunteer for any rollout/post-training work — that is the internal pivot path. Anthropic Fellows applications stay open year-round; re-apply each cycle if first attempt was rejected.\n\n' +
+              'This is the durable hook from North into Atlas Year-1. North got you paid; Atlas-RL is where you compound.',
+            verify: 'docs/next-90.md has a "RL transition" section linking to the four training-track modules; DeepSeek-R1 paper read; verl + OpenRLHF + TRL cloned and built.',
+            hours: '2h',
+            resources: [R.mosaic_applied],
           },
         ],
         reading: [R.weng_inference, R.pope_efficient, R.mosaic_applied],

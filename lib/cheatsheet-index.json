@@ -686,10 +686,136 @@
     "tldr": "- **LoRA** trains two small low-rank matrices `A` and `B` instead of the full weight `W`. Update is `W + (B·A) × scale`. Storage and gradient memory drop ~100×.\n- **QLoRA** keeps the base model's weights frozen and quantized to **NF4** (4-bit), only LoRA adapters are FP16. This is what lets you fine-tune **Llama-3-70B on a single 80 GB GPU**.\n- **DoRA** decomposes weight updates into magnitude + direction. Closes most of the gap between LoRA and full fine-tuning at small additional cost.\n- Production serving uses **multi-LoRA** (S-LoRA, vLLM `--enable-lora`) — one base model, many tenant-specific adapters hot-swapped per request.\n- **Rule of thumb:** rank `r=16, alpha=32` is the sane default. Bump `r` to 64 only if you can't fit the task otherwise."
   },
   {
+    "slug": "/training/post-training/ppo-deep-dive",
+    "track": "training",
+    "module": "training/post-training",
+    "title": "PPO Deep Dive",
+    "tldr": "- **PPO loss for LLM RL** has 4 terms: clipped policy loss, value loss (often clipped too), entropy bonus (often zero for LLMs), KL anchor to reference.\n- **GAE for advantage** with $\\gamma = 1.0$, $\\lambda \\approx 0.95$ is standard.\n- **Advantage normalization is mandatory** — batch-normalize advantages to mean 0 var 1 before applying. Without it, learning is brittle.\n- **Reward shaping**: subtract per-token KL from per-token reward, OR add KL as a loss term. Both work; per-token KL gives smoother gradients.\n- **K epochs of PPO over the same rollouts** (usually 2-4) — the importance ratio keeps the off-policy gradient correct within the trust region.\n- **The 37 details** (Huang et al.) decide whether PPO works. Read the blog post before debugging *anything*."
+  },
+  {
+    "slug": "/training/post-training/reward-modeling",
+    "track": "training",
+    "module": "training/post-training",
+    "title": "Reward Modeling at Scale",
+    "tldr": "- A **reward model** $r_\\phi(x, y)$ is a scalar regressor that scores how good completion $y$ is for prompt $x$. Usually initialized from the SFT model with the LM head replaced.\n- Trained with **Bradley-Terry pairwise preference loss**: minimize $-\\log \\sigma(r(x,y_w) - r(x,y_l))$ on triplets $(x, y_w, y_l)$.\n- **Calibration matters**: RM scores aren't absolute. Margins of $\\sim 1.0$ are typical between chosen/rejected; absolute scores are arbitrary.\n- **The three failure modes**: (1) **overfitting** — RM memorizes labeler quirks; (2) **distribution shift** — RM is queried on completions far from its training distribution during PPO; (3) **reward hacking** — policy finds completions that exploit RM weaknesses.\n- **2026 trend**: **generative reward models** (LLM-as-judge with structured rubrics) and **process reward models** (score each reasoning step, not final answer) are replacing classical scalar RMs for reasoning workloads."
+  },
+  {
+    "slug": "/training/post-training/rlhf-pipeline",
+    "track": "training",
+    "module": "training/post-training",
+    "title": "The Full RLHF Pipeline",
+    "tldr": "- **Three stages**: (1) Supervised fine-tuning on high-quality demos; (2) train a **reward model** from pairwise human preferences; (3) PPO-fine-tune the SFT model against the RM with a KL anchor to the SFT.\n- **The reward model** is a separate network (often the same architecture, last-token classification head): outputs a scalar score $r(x,y)$. Trained with the Bradley-Terry pairwise-preference loss.\n- **The PPO loop** treats the SFT model as the *reference* (KL anchor) and as the *initialization*. The RM stays frozen during PPO.\n- **Why three stages**: SFT alone teaches the model the *kind* of response shape we want; RM alone scores responses; PPO is how the model *generalizes* the RM's preferences to new prompts the RM was never trained on.\n- **Cost**: brutal. ~3× a single training run because you're holding ≥3 models in memory: policy, reference, reward model (and a value head). This is why DPO and GRPO matter."
+  },
+  {
+    "slug": "/training/post-training/rlvr-verifiable-rewards",
+    "track": "training",
+    "module": "training/post-training",
+    "title": "RLVR — Verifiable Rewards",
+    "tldr": "- **RLVR (Reinforcement Learning with Verifiable Rewards)**: replace the learned RM with an oracle that *checks* the output. Math: exact-match. Code: unit tests. Format: regex. Reward = 0 or 1.\n- **The 2024 breakthrough**: DeepSeek-Math used RLVR with GRPO and got SOTA math reasoning. Then R1 (Jan 2025) used the same recipe at scale and matched o1.\n- **Why it works**: the signal is **noise-free** (a parser doesn't have labeler disagreement). It's **non-hackable** (the policy can't trick a unit test the way it tricks an RM). It's **cheap** (sandboxed verifier ≪ RM forward pass).\n- **What it's good for**: math, code, structured output, formal logic, anything where correctness is checkable.\n- **What it's bad for**: open-ended writing, creative tasks, soft preferences, anything subjective. RLHF/DPO still rules there."
+  },
+  {
     "slug": "/training/post-training/sft",
     "track": "training",
     "module": "training/post-training",
     "title": "SFT & Instruction Tuning",
     "tldr": "- **Supervised Fine-Tuning (SFT)** is the first post-training step: you train on (instruction, response) pairs so the model learns to follow directions instead of just completing text.\n- **Chat templates** (ChatML, Llama 3 format) wrap conversations with special tokens that delineate system/user/assistant turns. **Using the wrong template at inference = broken model.** Always match training and serving templates.\n- **Prompt loss masking** zeros the loss on instruction tokens (set labels to `-100`). The model only learns to *generate* responses, not to memorize your prompts.\n- **Sample packing** concatenates multiple short conversations into one sequence, eliminating padding waste. With proper attention masking, this gives 2–4× training throughput on typical chat datasets.\n- Quality > quantity. 10K carefully curated examples often beats 1M noisy ones. The LIMA paper (2023) showed 1K high-quality examples suffice for strong instruction-following."
+  },
+  {
+    "slug": "/training/rl-foundations/mdp-bellman",
+    "track": "training",
+    "module": "training/rl-foundations",
+    "title": "MDPs & Bellman Equations",
+    "tldr": "- A **Markov Decision Process** is the 5-tuple $(\\mathcal{S}, \\mathcal{A}, P, R, \\gamma)$ — states, actions, transition probabilities, reward function, discount factor.\n- The **Markov property**: the future depends only on the current state. In LLM RL, \"state\" = the full token history so far; this is technically Markov because nothing else exists.\n- The **return** $G_t = \\sum_{k=0}^{\\infty} \\gamma^k r_{t+k+1}$ is what we want to maximize. $\\gamma \\in [0,1)$ keeps it finite.\n- **Value functions**: $V^\\pi(s)$ = expected return from $s$ following $\\pi$; $Q^\\pi(s,a)$ = same but you take action $a$ first.\n- **Bellman equation**: $V^\\pi(s) = \\mathbb{E}_\\pi[r + \\gamma V^\\pi(s')]$ — value of a state is its immediate reward plus the discounted value of the next state. Every RL algorithm bootstraps off this."
+  },
+  {
+    "slug": "/training/rl-foundations/policy-gradient",
+    "track": "training",
+    "module": "training/rl-foundations",
+    "title": "Policy Gradient & REINFORCE",
+    "tldr": "- **The goal**: maximize $J(\\theta) = \\mathbb{E}_{\\tau \\sim \\pi_\\theta}[R(\\tau)]$ where $\\tau$ is a sampled trajectory and $\\theta$ is the policy parameters.\n- **Problem**: the trajectory itself depends on $\\theta$ (because $\\pi_\\theta$ generated it), so the gradient looks intractable.\n- **Solution**: the **log-derivative trick**. $\\nabla_\\theta J = \\mathbb{E}_\\tau[\\nabla_\\theta \\log p_\\theta(\\tau) \\cdot R(\\tau)]$. The gradient lives entirely in $\\log \\pi_\\theta$.\n- **REINFORCE**: sample trajectories, compute $\\sum_t \\nabla_\\theta \\log \\pi_\\theta(a_t|s_t) \\cdot G_t$, take a gradient step. ~10 lines of code.\n- **The problem with vanilla REINFORCE**: variance is enormous. Subtracting a baseline $b(s)$ (the next lesson) is what makes it practical. PPO, GRPO, and every modern method are baseline + clipping variants."
+  },
+  {
+    "slug": "/training/rl-foundations/trust-region-kl",
+    "track": "training",
+    "module": "training/rl-foundations",
+    "title": "Trust Regions, KL & Importance Sampling",
+    "tldr": "- **Off-policy correction**: if data was sampled from $\\pi_{old}$ but you want to estimate a gradient under $\\pi$, multiply by the **importance ratio** $\\rho = \\pi(a|s) / \\pi_{old}(a|s)$.\n- **Trust region** (TRPO): explicitly constrain $\\mathbb{E}[KL(\\pi_{old} \\| \\pi)] \\leq \\delta$. Theoretically clean but expensive (conjugate gradient + line search per step).\n- **Clipping** (PPO): replace the constraint with a *clipped objective*: $\\min(\\rho \\hat{A},\\, \\text{clip}(\\rho, 1-\\epsilon, 1+\\epsilon) \\hat{A})$. Cheap, empirically robust. $\\epsilon \\approx 0.2$ standard.\n- **KL penalty against a reference**: in LLM RL, add $-\\beta \\cdot KL(\\pi \\| \\pi_{ref})$ where $\\pi_{ref}$ is the *frozen base model*. Stops the policy from drifting away from coherent language.\n- **Two KL terms exist in modern recipes**: (a) the *trust-region* KL between old/new policy within an update; (b) the *anchor* KL against a frozen reference base. Don't confuse them."
+  },
+  {
+    "slug": "/training/rl-foundations/value-advantage",
+    "track": "training",
+    "module": "training/rl-foundations",
+    "title": "Value Functions, Advantage & GAE",
+    "tldr": "- **Value $V^\\pi(s)$**: expected return from $s$ under policy $\\pi$. The baseline you should subtract.\n- **Q-value $Q^\\pi(s,a)$**: expected return if you take action $a$ first, then follow $\\pi$.\n- **Advantage $A^\\pi(s,a) = Q^\\pi(s,a) - V^\\pi(s)$**: how much better action $a$ is than average at $s$. Mean-zero. *This is what policy gradient should multiply $\\nabla \\log \\pi$ by.*\n- **TD error $\\delta_t = r_t + \\gamma V(s_{t+1}) - V(s_t)$**: a 1-step, low-variance, biased estimate of advantage.\n- **GAE($\\lambda$)**: $A^{GAE}_t = \\sum_{k=0}^\\infty (\\gamma\\lambda)^k \\delta_{t+k}$. Single knob between $\\lambda{=}0$ (low variance, high bias TD) and $\\lambda{=}1$ (high variance, unbiased Monte Carlo). Default $\\lambda \\approx 0.95$."
+  },
+  {
+    "slug": "/training/rl-frontier/agentic-rl",
+    "track": "training",
+    "module": "training/rl-frontier",
+    "title": "Agentic RL & Tool-Use Training",
+    "tldr": "- **Agentic RL** = RL where the model alternates between *thinking*, *tool-calling*, and *acting*. Each tool call returns a result; the model conditions on it.\n- **The reward is at the end** of a multi-step trajectory. Could be 10-50 turns.\n- **The credit assignment problem**: which turn caused success? Without intermediate signal, the gradient is diluted across many turns.\n- **Two main approaches** (early 2026): (a) **trajectory-level RL** — score the whole rollout, use GRPO; (b) **step-level RL** — use a PRM to credit specific turns.\n- **The infrastructure** is genuinely new: rollout engines now need to support multi-turn generation with tool execution between turns. Sandboxes scale. Replay buffers grow.\n- **Hot 2025-2026 papers**: ReACT-RL, AgentR, Multi-Turn GRPO, ToolRL, Skywork-o1, Devin's training stack (closed but described)."
+  },
+  {
+    "slug": "/training/rl-frontier/process-reward-models",
+    "track": "training",
+    "module": "training/rl-frontier",
+    "title": "Process Reward Models (PRM)",
+    "tldr": "- **PRM** (Process Reward Model): scores each reasoning step. Trained on per-step labels — \"this step is correct\" or \"this step is wrong\".\n- **ORM** (Outcome Reward Model): scores only the final answer. Cheaper to train; what R1 used.\n- **OpenAI 2023 \"Let's Verify\"**: PRMs beat ORMs on math at fixed inference budget. The paper that started the PRM hype.\n- **2024-2025 follow-ups**: ORMs catch up with more training compute. The PRM advantage shrinks. Open question.\n- **PRMs are still useful for**: (a) interpretability — you can see where the model goes wrong; (b) inference-time search (best-of-N with PRM scoring); (c) data filtering (rejection-sampling reasoning traces by step quality).\n- **Cost**: PRMs need per-step labels (expensive). ORMs need only end-of-trajectory labels (cheap)."
+  },
+  {
+    "slug": "/training/rl-frontier/reasoning-models",
+    "track": "training",
+    "module": "training/rl-frontier",
+    "title": "Reasoning Models (R1 · o1 · o3)",
+    "tldr": "- **The paradigm**: train the model to *spend more compute at inference* via RL on verifiable rewards. The model writes long chains of thought; correctness drives gradient; emergent self-correction shows up.\n- **Open recipe** (DeepSeek-R1, public): cold-start SFT → GRPO on math/code with RLVR → rejection-sampling SFT on best rollouts → final GRPO with helpful/harmless reward.\n- **Closed recipe** (o1/o3/Claude-thinking/Gemini-thinking, inferred): widely believed to be PPO-variant + RL on verifiable rewards + reward signal blending across capabilities + significantly more RL compute than open.\n- **Inference-time compute scaling laws**: longer reasoning chains → higher accuracy, sub-linearly. The model has a *compute budget* knob (number of reasoning tokens) that trades latency for quality.\n- **2026 status**: every frontier lab has a reasoning model. The gap is closing. Recipe is no longer secret; *compute* is the moat."
+  },
+  {
+    "slug": "/training/rl-frontier/reward-hacking-rlaif",
+    "track": "training",
+    "module": "training/rl-frontier",
+    "title": "Reward Hacking & RLAIF / Constitutional AI",
+    "tldr": "- **Reward hacking**: the policy finds completions that score high on the RM but violate the spirit of what the labelers wanted. Classic cases: verbose sycophancy, formatting tricks, false confidence, \"Great question!\" preambles.\n- **Standard mitigations**: KL anchor to the reference policy (the big lever), RM ensembles for uncertainty, periodic RM refresh on on-policy data, manual completion inspection.\n- **RLAIF (RL from AI Feedback)**: replace human preference labelers with a frontier LLM. Bai et al. (2022) showed this can match RLHF quality on many tasks. Cheap.\n- **Constitutional AI (Anthropic)**: an LLM critiques and revises its own outputs against a written \"constitution\" (principles). The revised outputs become the preference data for RL.\n- **Verifiable rewards** (covered in the RLVR lesson) avoid reward hacking entirely by replacing the RM with an oracle — but they only work for checkable tasks."
+  },
+  {
+    "slug": "/training/rl-frontier/self-play-curriculum",
+    "track": "training",
+    "module": "training/rl-frontier",
+    "title": "Self-Play, Curriculum & RL for Code",
+    "tldr": "- **Self-play**: the policy generates rollouts; the *better* rollouts become training data for the next iteration. Iterative self-improvement. R1-Zero is essentially self-play with a verifier; AlphaZero-style games are the historical reference.\n- **Curriculum**: schedule the difficulty of training prompts. Start with easy problems where signal is dense; ramp to hard ones where the policy is challenged. Empirically valuable; theoretically poorly understood.\n- **RL for code**: the canonical RLVR application. Code is verifiable (unit tests), debuggable (interpreters give signal), and high-value (paying customer feedback loop). Devin, Claude Code, GitHub Copilot Workspace all train on this.\n- **Common pattern**: cold-start SFT → curriculum-scheduled GRPO+RLVR with self-play sample generation. Three threads converging into one recipe."
+  },
+  {
+    "slug": "/training/rl-systems/async-rl-staleness",
+    "track": "training",
+    "module": "training/rl-systems",
+    "title": "Async RL & Off-Policy Staleness",
+    "tldr": "- **Sync RL**: rollouts then training then weight sync, in lockstep. Easy to reason about. GPU utilization 50-70%.\n- **Async RL**: trainer and rollout pool run concurrently. Trainer gets data generated by K-step-old weights. GPU utilization 80-95%.\n- **Cost**: importance ratios get larger ($\\rho = \\pi/\\pi_{old}$ where $\\pi_{old}$ is K steps stale). PPO clip handles small K; large K breaks the estimator.\n- **Mitigations**: smaller learning rate, tighter PPO clip ($\\epsilon = 0.1$ instead of $0.2$), stricter KL anchor, periodic full sync.\n- **The key papers**: Laminar (2024), ROLL Flash (2025), AReaL (2024). All converge on similar architectures: replay buffer + staleness-aware advantage."
+  },
+  {
+    "slug": "/training/rl-systems/distributed-rl-ray",
+    "track": "training",
+    "module": "training/rl-systems",
+    "title": "Distributed RL & Ray Architectures",
+    "tldr": "- **Ray** is a Python-native distributed framework. Its key primitive — `@ray.remote` actors — is the right model for \"a stateful GPU worker that does one thing\".\n- **Standard RL Ray architecture**: separate actors for trainer (FSDP), rollouts (vLLM replicas), reward model (batched inference), critic, optional verifier — all coordinated by a driver process.\n- **Why Ray over alternatives**: handles heterogeneous resources (GPU types), fault tolerance, actor placement, and gradient/data exchange across actor types — all in Python.\n- **The placement group** is Ray's killer feature for RL: declaratively reserve GPUs for each actor type, get failure isolation between pools.\n- **Trade-offs**: Ray adds ~50-200ms of orchestration overhead per call vs raw PyTorch distributed. For RL where one step is 5-30s, this is invisible."
+  },
+  {
+    "slug": "/training/rl-systems/openrlhf-internals",
+    "track": "training",
+    "module": "training/rl-systems",
+    "title": "OpenRLHF & NeMo-RL Internals",
+    "tldr": "- **OpenRLHF** (~150 contributors, very active): the cleanest Ray-based open RL trainer. Built around vLLM rollouts and Hugging Face models. Recommended *first* RL framework to read.\n- **NeMo-RL** (NVIDIA): production-scale with Megatron parallelism (TP + PP + EP). Hardest to learn, most powerful at large scale. 2.5× speedup paper from NVIDIA AI Foundations.\n- **TRL** (Hugging Face): the *easiest* on-ramp; not Ray-based; single-node focus. Read TRL first if you've never touched RL code. Don't use it at scale.\n- **Other notables**: trlx (CarperAI, mostly archived); Levanter / Marin (Stanford, JAX); AReaL (Tsinghua, async-focused); Hugging Face Open-R1 (recipe-focused, not framework).\n- **How to pick**: read OpenRLHF first → graduate to verl for current research → reach for NeMo-RL at thousand-GPU scale."
+  },
+  {
+    "slug": "/training/rl-systems/rollout-engines",
+    "track": "training",
+    "module": "training/rl-systems",
+    "title": "Rollout Engines (vLLM as RL Backend)",
+    "tldr": "- A **rollout engine** is an inference server (typically vLLM or SGLang) that the trainer queries for completions during each RL step. Lives on a separate GPU pool from the trainer.\n- **Weight syncing** is the hard part: the policy on the trainer updates every step, but the rollout engine is holding stale weights. Solutions: NCCL all-gather, RDMA push, slow-path checkpoint load.\n- **Prefix caching across rollouts** matters enormously — same prompt sampled G times means G-1 chances to reuse the prefill. vLLM and SGLang both support this.\n- **On-policy gap**: if the rollout engine is more than ~1 step behind the trainer, importance ratios explode. Sync strategy decides what \"more than ~1 step\" means in your setup.\n- **Async vs sync**: sync = rollouts pause during weight update; async = rollouts continue with stale weights and importance-correct later. Async is more efficient but harder."
+  },
+  {
+    "slug": "/training/rl-systems/verl-internals",
+    "track": "training",
+    "module": "training/rl-systems",
+    "title": "verl Internals",
+    "tldr": "- **verl** = Volcano Engine RL, by ByteDance's Seed team. Apache-2 licensed. Ray-based. Highly active (PRs landing daily).\n- **Single-controller pattern**: a driver process holds the abstract `WorkerGroup` for each role (trainer, rollout, RM); operations are issued on the *group*, not on individual workers. This is verl's signature design choice.\n- **HybridFlow framework** (the paper): verl's underlying programming model. Lets you write \"what to do\" without worrying about which-worker-runs-which-step.\n- **Supports**: GRPO, PPO, DPO, RLOO, ReMax, REINFORCE++, RLHF-PPO. New algorithms are added regularly.\n- **Backends**: FSDP-2 and Megatron-LM for training; vLLM and SGLang for rollouts. Pick your combination per use case.\n- **First PR target**: typically a new sampling parameter, a verifier function, or a small bug fix in a worker. Larger PRs (new algorithm, new backend) need design discussion first."
   }
 ]

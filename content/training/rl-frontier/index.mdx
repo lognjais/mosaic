@@ -1,0 +1,28 @@
+---
+title: RL Frontier — Reasoning, Agents, Safety
+description: Where the field is actually moving in 2026 — reasoning models, process reward, agentic RL, reward hacking, RLAIF, self-play.
+last_reviewed: 2026-05-25
+---
+# RL Frontier
+
+The post-training paradigm is changing every six months. R1 in January 2025, o3 by end of year, agentic RL beginning to ship in 2026. This module is the live edge: what we know, what we suspect, what's still open. Read these for *direction* — the specific algorithms here will be stale within 12 months; the structural ideas (verifiability, process reward, self-play, reward hacking) will not.
+
+<ModuleProgress
+  lessons={[
+    { slug: '/training/rl-frontier/reasoning-models', title: 'Reasoning Models (R1 · o1 · o3)', estMin: 14 },
+    { slug: '/training/rl-frontier/process-reward-models', title: 'Process Reward Models (PRM)', estMin: 14 },
+    { slug: '/training/rl-frontier/agentic-rl', title: 'Agentic RL & Tool-Use Training', estMin: 16 },
+    { slug: '/training/rl-frontier/reward-hacking-rlaif', title: 'Reward Hacking & RLAIF / Constitutional AI', estMin: 16 },
+    { slug: '/training/rl-frontier/self-play-curriculum', title: 'Self-Play, Curriculum & RL for Code', estMin: 14 },
+  ]}
+/>
+
+<Capstone
+  title="Train an agentic RL loop end-to-end"
+  pitch="The capstone for the whole RL track. Train a small model to use tools with RL — the skill behind every reasoning agent in production by 2027."
+  what="Pick a verifiable agentic task (e.g. a math problem set where the agent calls a calculator tool, or a code task where it runs unit tests). Define the tool API. Sample multi-step rollouts with tool calls. Compute trajectory-level reward. Run GRPO with multi-turn advantage attribution. Demonstrate the model learned *when to call the tool*, not just *how* to use it. Write up the failure modes — reward hacking attempts, infinite tool-call loops, degenerate strategies."
+  sota={['verl multi-turn support', 'OpenAI gym wrapper around your tool', 'Same vLLM rollout stack', 'arXiv 2502.* agentic-RL recent papers']}
+  device="gpu"
+  time="4-6 weekends"
+  level="advanced"
+/>

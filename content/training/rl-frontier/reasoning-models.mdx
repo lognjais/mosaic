@@ -1,0 +1,184 @@
+---
+title: Reasoning Models (R1 · o1 · o3)
+description: The new paradigm of test-time-compute models — how o1, R1, o3 are trained, what's confirmed vs inferred, and the open questions that frame 2026 research.
+last_reviewed: 2026-05-25
+---
+# Reasoning Models (R1 · o1 · o3)
+
+<Mode is="learn">
+
+September 2024: OpenAI released o1. The model output thousands of reasoning tokens before its final answer; benchmarks jumped on math and code. Everyone in the field knew something had changed. January 2025: DeepSeek-R1. Open weights, open recipe, comparable performance — and a paper that explained the recipe (RLVR + GRPO + cold-start SFT) in enough detail to reproduce. Sometime in 2025 OpenAI shipped o3, then o3-pro, then the rest of the frontier caught up. This lesson is the shared paradigm — what's known, what's inferred, and what's still unknown.
+
+## TL;DR
+
+- **The paradigm**: train the model to *spend more compute at inference* via RL on verifiable rewards. The model writes long chains of thought; correctness drives gradient; emergent self-correction shows up.
+- **Open recipe** (DeepSeek-R1, public): cold-start SFT → GRPO on math/code with RLVR → rejection-sampling SFT on best rollouts → final GRPO with helpful/harmless reward.
+- **Closed recipe** (o1/o3/Claude-thinking/Gemini-thinking, inferred): widely believed to be PPO-variant + RL on verifiable rewards + reward signal blending across capabilities + significantly more RL compute than open.
+- **Inference-time compute scaling laws**: longer reasoning chains → higher accuracy, sub-linearly. The model has a *compute budget* knob (number of reasoning tokens) that trades latency for quality.
+- **2026 status**: every frontier lab has a reasoning model. The gap is closing. Recipe is no longer secret; *compute* is the moat.
+
+## Why this matters
+
+The reasoning-model paradigm changed what "post-training" means. Pre-2024 post-training was about preference alignment; post-2024, it's about capability extraction. The infrastructure for reasoning RL is the named work item at every frontier lab. Knowing this paradigm at the recipe level distinguishes RL engineers who can build the next reasoning model from engineers who only run someone else's recipes.
+
+## The shared paradigm
+
+All current reasoning models share three structural choices:
+
+**1. Long chain-of-thought as the output format.** Models are trained to write 1K-50K reasoning tokens before the final answer. The pattern is loosely consistent across labs: tag-delimited (`<think>...</think>` for DeepSeek; analysis sections for OpenAI; equivalent structure for Anthropic).
+
+**2. RL on verifiable rewards as the gradient signal.** Math problems checked by exact-match or symbolic equivalence. Code by unit tests. Format by regex. Sparse (0/1) terminal reward.
+
+**3. KL anchor to a competent SFT base.** Cold-start SFT establishes basic reasoning shape; RL pushes capability without destroying coherence.
+
+The variants are about *which* algorithm runs RL (PPO vs GRPO vs other), *what reward signals are blended* (some labs blend RLVR + RLHF + RLAIF on different reward channels), and *how much compute* is thrown at it.
+
+## DeepSeek-R1 (the public recipe)
+
+```
+Phase 1: Cold-start SFT
+  ~100K human-curated long-CoT examples on math/code
+  Output: a base that can write extended reasoning chains
+  Compute: small (~SFT scale)
+
+Phase 2: GRPO with RLVR (the big phase)
+  Math: exact-match verifier
+  Code: unit-test verifier
+  Format bonus: regex-match for <think>...</think> structure
+  G = 8 to 16 rollouts per prompt
+  ~10K-30K RL steps over millions of rollouts
+  Output: model that emits 1K-10K-token reasoning chains, accuracy ↑↑
+  Compute: large (~10-100× SFT)
+
+Phase 3: Rejection-sampling SFT
+  Take best rollouts from Phase 2 policy
+  Fine-tune base model on these traces
+  Mix in non-reasoning data (chat, safety) to preserve generality
+  Output: a model with general capability + strong reasoning
+  Compute: medium
+
+Phase 4: Final GRPO pass
+  Smaller GRPO run with blended rewards (verifiable + helpfulness + safety)
+  Output: production R1
+  Compute: medium
+```
+
+The R1 paper documents this in enough detail to reproduce. Hugging Face Open-R1 has reproduced it; Light-R1, Sky-T1, OpenThoughts have followed.
+
+## OpenAI o1/o3 (the inferred recipe)
+
+What's publicly known or near-certain:
+- RL training significantly larger than R1's (multiple OpenAI staff statements).
+- "Hidden chain of thought" — the reasoning tokens aren't shown to users; OpenAI claims this is to allow the model to express unaligned intermediate thoughts.
+- Test-time compute scaling — o1 allowed users to dial reasoning depth.
+
+What's inferred but not confirmed:
+- Algorithm: likely a PPO-variant or proprietary algorithm, not necessarily GRPO.
+- Reward signals: blended math/code/factuality/safety, possibly with PRM-style intermediate rewards.
+- Multi-objective RL: rumors of separate reward channels for different capabilities.
+
+What's unknown:
+- Specific hyperparameters, model architecture changes, compute spend, dataset composition.
+
+The most credible analyses are in Nathan Lambert's Interconnects newsletter and the various open-recipe attempts.
+
+## The "aha moment" — empirically real
+
+DeepSeek's most-cited finding: during Phase 2 RL, the model spontaneously develops self-reflection. Phrases like "Wait, let me reconsider" or "Actually I think I made an error" appear in the reasoning chains *without being in any training data*. They emerge because they lead to higher accuracy (the model checks its work and catches errors).
+
+This is the closest demonstration in 2025-2026 of *learned* reasoning behavior (as opposed to imitated reasoning from training data). It's not just curve-fitting — the model is finding novel patterns that the verifier rewards.
+
+## Test-time compute scaling laws
+
+A new family of scaling laws appeared in 2024-2025: accuracy as a function of reasoning-token budget. The curves are sub-linear (you need to double tokens to get small accuracy gains in the tail), but they keep climbing for tens of thousands of tokens. This means:
+
+- **Inference cost matters more than ever.** A reasoning model with 10K-token average output costs 10× a chat-model query.
+- **Quality / latency / cost is a Pareto frontier**, with the budget knob exposed to users.
+- **Inference-time compute is fungible with training compute** (Snell et al. 2024). You can trade train-compute for inference-compute, with structure.
+
+The Snell paper is required reading — it's the empirical foundation for everything OpenAI/Anthropic now do with budget-controlled reasoning.
+
+## 2026 open questions
+
+- **Generalization**: math RL transfers to general reasoning. How? Mechanism unclear.
+- **PRMs vs ORMs**: do process reward models (per-step rewards) beat outcome reward models (terminal rewards)? Mixed evidence so far.
+- **Agentic extension**: can the same RL machinery train agents that use tools? (Covered in the agentic-rl lesson.)
+- **Compute scaling**: is there a wall? OpenAI's pace suggests no immediate one.
+- **Reward hacking at scale**: as training compute grows, the policy gets more creative at gaming the verifier. Mitigations are an active research area.
+
+## Key takeaways
+
+1. **The reasoning-model paradigm**: long CoT + RL on verifiable rewards + KL anchor to SFT.
+2. **DeepSeek-R1 is the public open recipe.** Reproducible. Required reading.
+3. **o1/o3 likely use a similar paradigm with more compute and blended reward channels.** Specifics undisclosed.
+4. **The "aha moment" is real** — emergent self-correction from the RL signal.
+5. **Inference-time compute scaling is a new family of scaling laws** — quality is now a budget knob.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'paper', href: 'https://arxiv.org/abs/2501.12948', title: 'DeepSeek-R1', author: 'DeepSeek-AI (Jan 2025)', note: 'The paper. Required.' },
+    { kind: 'paper', href: 'https://openai.com/index/learning-to-reason-with-llms/', title: 'OpenAI — Learning to Reason with LLMs (o1)', author: 'OpenAI (Sep 2024)', note: 'The official o1 announcement. Light on details but sets the framing.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2408.03314', title: 'Snell et al. — Scaling LLM Test-Time Compute', author: 'Snell et al. (Aug 2024)', note: 'Why inference-time compute is fungible with training. Foundational.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2503.18809', title: 'OpenThoughts (Stanford)', note: 'Open replication of o1/R1 with all data + recipe.' },
+    { kind: 'blog', href: 'https://huggingface.co/blog/open-r1', title: 'Hugging Face — Open R1 project', note: 'Community replication. Detailed ablations.' },
+    { kind: 'blog', href: 'https://www.interconnects.ai/p/reasoning-models', title: 'Nathan Lambert — The state of reasoning models', note: 'Best running-update on what is known about the closed recipes.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2501.04519', title: 'rStar-Math', note: 'Microsoft\'s reasoning-RL paper. Different recipe, similar paradigm.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2502.06703', title: 'Light-R1', note: 'A clean open replication recipe with full hyperparameters.' },
+    { kind: 'video', href: 'https://www.youtube.com/watch?v=Llg6yj9eLvg', title: 'Karpathy — Deep Dive on RL Training (2025)', author: 'Karpathy', note: 'The best non-paper walkthrough of the modern reasoning recipe.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2501.19393', title: 's1 — Simple Test-Time Scaling', note: 'Stanford\'s minimal-data reasoning recipe; a sobering counterpoint that you don\'t need massive RL.' },
+  ]}
+/>
+
+</Mode>
+
+<Mode is="reference">
+
+## TL;DR
+
+- Reasoning paradigm = long CoT + RL on verifiable rewards + KL anchor to SFT base.
+- DeepSeek-R1 = open public recipe (GRPO + RLVR + 4-phase pipeline).
+- o1/o3 = closed, inferred similar with more compute + blended reward channels.
+- Test-time compute scaling laws (Snell et al.) are now a load-bearing family of empirical results.
+
+## Why this matters
+
+The paradigm defining frontier post-training in 2026.
+
+## Concrete walkthrough
+
+**R1 phases (reference):**
+
+| Phase | Method | Compute | Output |
+| --- | --- | --- | --- |
+| 1 | Cold-start SFT on ~100K long-CoT | Small | Reasoning-capable base |
+| 2 | GRPO + RLVR (math + code) | Large | Spontaneous long CoT, accuracy ↑↑ |
+| 3 | Rejection-sampling SFT on best rollouts + safety data | Medium | General + reasoning capable |
+| 4 | Final GRPO with blended rewards | Medium | Production R1 |
+
+**Test-time compute curves (Snell + R1):**
+
+- Accuracy scales as $\log(\text{reasoning tokens})$ roughly, until a per-model ceiling.
+- A reasoning model with 4× more tokens at inference ≈ a 2× larger base model. Approximate equivalence; varies by task.
+
+## Key takeaways
+
+1. R1 recipe is the open reference.
+2. o1/o3 closed but paradigm-aligned.
+3. Inference-time compute scaling is real.
+4. Reward hacking risk grows with training compute.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'paper', href: 'https://arxiv.org/abs/2501.12948', title: 'DeepSeek-R1' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2408.03314', title: 'Snell — Test-Time Compute Scaling' },
+    { kind: 'blog', href: 'https://www.interconnects.ai/p/reasoning-models', title: 'Lambert — Reasoning Models survey' },
+  ]}
+/>
+
+</Mode>
+
+<LessonComplete />

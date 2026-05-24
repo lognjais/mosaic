@@ -1,0 +1,201 @@
+---
+title: verl Internals
+description: ByteDance's production RL framework — the layout, the single-controller pattern, the rollout/trainer split, and how to land a contributor PR.
+last_reviewed: 2026-05-25
+---
+# verl Internals
+
+<Mode is="learn">
+
+verl (Volcano Engine RL, from ByteDance) is the production RL training framework that frontier labs and serious open-source projects converged on in 2024-2025. It's where the GRPO+RLVR recipes are deployed at thousand-GPU scale, where ROLL Flash (the 2.72× rollout speedup) landed, and where new RL infrastructure ideas show up first. Knowing verl's architecture turns you from someone who *reads* RL papers into someone who can land code in the framework training those papers' models.
+
+## TL;DR
+
+- **verl** = Volcano Engine RL, by ByteDance's Seed team. Apache-2 licensed. Ray-based. Highly active (PRs landing daily).
+- **Single-controller pattern**: a driver process holds the abstract `WorkerGroup` for each role (trainer, rollout, RM); operations are issued on the *group*, not on individual workers. This is verl's signature design choice.
+- **HybridFlow framework** (the paper): verl's underlying programming model. Lets you write "what to do" without worrying about which-worker-runs-which-step.
+- **Supports**: GRPO, PPO, DPO, RLOO, ReMax, REINFORCE++, RLHF-PPO. New algorithms are added regularly.
+- **Backends**: FSDP-2 and Megatron-LM for training; vLLM and SGLang for rollouts. Pick your combination per use case.
+- **First PR target**: typically a new sampling parameter, a verifier function, or a small bug fix in a worker. Larger PRs (new algorithm, new backend) need design discussion first.
+
+## Why this matters
+
+A merged PR in verl is a **portfolio-defining artifact** for an RL-systems engineer in 2026. Same league as a merged vLLM PR, but in a hotter sub-area. The maintainers are responsive (3-10 day review pace), the codebase is well-structured, and the project is actively recruiting contributors.
+
+## The layout
+
+```
+verl/
+├── verl/
+│   ├── trainer/             # PPO, GRPO, DPO trainers
+│   │   ├── main_ppo.py        # PPO trainer entrypoint
+│   │   ├── main_dpo.py
+│   │   └── ppo/             # core RL algo implementations
+│   ├── workers/             # the @ray.remote actor classes
+│   │   ├── rollout/         # rollout backends
+│   │   │   ├── vllm_rollout/
+│   │   │   ├── sglang_rollout/
+│   │   │   └── hf_rollout/
+│   │   ├── actor/           # policy training actors (FSDP)
+│   │   ├── critic/          # value model actors
+│   │   ├── reward/          # reward model actors
+│   │   └── reward_manager/  # ensembles, verifiers
+│   ├── single_controller/   # the HybridFlow controller layer
+│   │   ├── base/
+│   │   └── ray/
+│   ├── models/              # FSDP/Megatron model wrappers
+│   ├── utils/
+│   └── ...
+├── examples/                # config files for canonical recipes
+└── tests/
+```
+
+The two directories worth memorizing: `verl/workers/` (where each role's logic lives) and `verl/single_controller/` (how they're orchestrated).
+
+## The HybridFlow / single-controller pattern
+
+verl's key abstraction: a `WorkerGroup` is a collection of identical workers (e.g., 8 FSDP trainer shards). You issue an operation on the group, and the controller fans out:
+
+```python
+# In the driver process
+actor_group = WorkerGroup(num_workers=8, cls=ActorWorker, ...)
+rollout_group = WorkerGroup(num_workers=4, cls=RolloutWorker, ...)
+
+# Operations on groups
+completions = rollout_group.generate(prompts)  # dispatches across 4 rollout workers
+losses = actor_group.compute_actor_loss(completions, advantages)  # dispatches across 8 trainers
+```
+
+Inside each worker, you write *normal PyTorch*. The single-controller handles the cross-worker coordination (NCCL groups, all-gather, gradient sync) declaratively.
+
+Contrast with raw Ray: instead of `[w.method.remote() for w in workers]`, you call a single method on the group and the controller orchestrates.
+
+## A canonical verl run (GRPO + RLVR on math)
+
+```bash
+python -m verl.trainer.main_ppo \
+  trainer.experiment_name=grpo_qwen2.5_1b_math \
+  algorithm.adv_estimator=grpo \
+  actor_rollout_ref.model.path=Qwen/Qwen2.5-1B-Instruct \
+  actor_rollout_ref.actor.optim.lr=1e-6 \
+  actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=4 \
+  actor_rollout_ref.rollout.name=vllm \
+  actor_rollout_ref.rollout.n=8 \
+  actor_rollout_ref.rollout.gpu_memory_utilization=0.85 \
+  reward_model.style=math_verify \
+  data.train_files=/path/to/gsm8k.parquet \
+  trainer.total_epochs=15 \
+  trainer.n_gpus_per_node=4
+```
+
+That's a full GRPO run on GSM8K. The config keys map 1:1 to actor configs in the code. Reading `examples/grpo_trainer/run_qwen2.5_3b_math.sh` will show you every knob.
+
+## Reading order for the first 3 days
+
+1. **`README.md`** — orientation.
+2. **`examples/grpo_trainer/run_qwen2.5_3b_math.sh`** — the canonical recipe. Read every config line and find the corresponding code.
+3. **`verl/trainer/main_ppo.py`** — entrypoint. ~200 lines. See how the controller is set up.
+4. **`verl/single_controller/base/worker_group.py`** — the dispatch layer.
+5. **`verl/workers/actor/dp_actor.py`** — the policy training worker (FSDP).
+6. **`verl/workers/rollout/vllm_rollout/vllm_rollout.py`** — how vLLM is wired in.
+7. **`verl/workers/reward/`** — the reward function pluggable interface.
+8. **`tests/`** — unit tests are excellent learning material; tests on the algorithm files explain edge cases.
+
+## How to land your first PR
+
+Hot spots in verl that accept small contributor PRs:
+
+- **New verifier functions** in `verl/utils/reward_score/` — math variants, code language extensions, format checks. Lowest-bar PR; high impact (every recipe consuming your verifier).
+- **Sampling parameter exposures** — adding a new vLLM/SGLang sampling option to the rollout config.
+- **Recipe configs** in `examples/` — a clean GRPO recipe for a new dataset that didn't exist.
+- **Documentation fixes** — surprisingly accepted; ByteDance's English docs need work, and recent PRs that polished them got citations.
+
+Hot spots that need design discussion first:
+
+- New algorithm (e.g., a new PPO variant) — open an issue and tag the algorithm maintainer.
+- New backend (e.g., adding a new inference engine) — open an issue with maintenance commitment.
+- Major refactors of `single_controller/` — engage with the core team.
+
+The README has a contributor channel (Discord/Slack); join it before opening anything but a tiny fix.
+
+## Key takeaways
+
+1. **verl = ByteDance's production RL framework.** Where modern RL recipes ship.
+2. **Single-controller / HybridFlow** is the signature pattern — operate on `WorkerGroup`s, not individual workers.
+3. **Two directories matter most**: `workers/` (per-role logic) and `single_controller/` (orchestration).
+4. **Reading order**: canonical example → entrypoint → controller → actor worker → rollout worker.
+5. **First PR targets**: new verifier function, new sampling param, new recipe config. Higher-bar work needs an issue + ack first.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'repo', href: 'https://github.com/volcengine/verl', title: 'volcengine/verl', note: 'The repo. Star it. Watch the releases.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2409.19256', title: 'HybridFlow / verl paper — Sheng et al.', author: 'ByteDance (Sep 2024)', note: 'The architecture paper. Sections 3-4 are the single-controller design.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2502.01142', title: 'ROLL Flash — Volcano Engine', note: 'verl\'s 2.72× rollout efficiency paper. The trajectory of where the framework is going.' },
+    { kind: 'docs', href: 'https://verl.readthedocs.io/', title: 'verl docs', note: 'Configuration reference. Use as a key-by-key lookup.' },
+    { kind: 'blog', href: 'https://github.com/volcengine/verl/blob/main/docs/algo/grpo.md', title: 'verl — GRPO docs', note: 'Algorithm-specific docs inside the repo. Pair with the canonical config script.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2501.12948', title: 'DeepSeek-R1', note: 'The recipe verl is built to run at scale.' },
+  ]}
+/>
+
+</Mode>
+
+<Mode is="reference">
+
+## TL;DR
+
+- verl = ByteDance RL framework, Ray-based, single-controller, FSDP+vLLM by default.
+- Supports GRPO, PPO, DPO, RLOO, ReMax, REINFORCE++, RLHF-PPO.
+- `WorkerGroup`-level dispatch via HybridFlow controller.
+- First PR target: verifier function, sampling parameter, recipe config.
+
+## Why this matters
+
+A merged verl PR is one of the strongest portfolio signals for RL-systems hiring in 2026.
+
+## Concrete walkthrough
+
+**Layout cheat-sheet:**
+
+| Path | What's there |
+| --- | --- |
+| `verl/trainer/main_ppo.py` | Entrypoint, one file per algorithm |
+| `verl/workers/actor/` | Policy training (FSDP or Megatron) |
+| `verl/workers/rollout/` | vLLM / SGLang / HF generation backends |
+| `verl/workers/reward/` | RM hosting + verifier dispatcher |
+| `verl/workers/reward_manager/` | Reward composition (math+code+format) |
+| `verl/single_controller/` | HybridFlow controller — the dispatch layer |
+| `verl/utils/reward_score/` | Pluggable verifier implementations |
+| `examples/grpo_trainer/` | Canonical configs |
+
+**Minimum-viable config flags** (GRPO):
+
+| Flag | Meaning |
+| --- | --- |
+| `algorithm.adv_estimator=grpo` | Use GRPO advantage |
+| `actor_rollout_ref.rollout.n=8` | G rollouts per prompt |
+| `actor_rollout_ref.rollout.name=vllm` | Rollout backend |
+| `reward_model.style=math_verify` | Verifier dispatcher |
+| `actor_rollout_ref.actor.use_kl_loss=true` | Schulman k3 KL term |
+
+## Key takeaways
+
+1. WorkerGroup dispatch (HybridFlow).
+2. `workers/` + `single_controller/` matter most.
+3. PR easy mode: verifier functions, configs.
+4. ROLL Flash trajectory: efficient rollouts.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'repo', href: 'https://github.com/volcengine/verl', title: 'verl repo' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2409.19256', title: 'HybridFlow paper', note: 'Architecture.' },
+    { kind: 'docs', href: 'https://verl.readthedocs.io/', title: 'verl docs' },
+  ]}
+/>
+
+</Mode>
+
+<LessonComplete />

@@ -1,0 +1,27 @@
+---
+title: RL Foundations
+description: The math you cannot skip — MDPs, policy gradients, value functions, trust regions. Read these before any RL algorithm makes sense.
+last_reviewed: 2026-05-25
+---
+# RL Foundations
+
+PPO, GRPO, DPO, RLHF — none of it makes sense without the underlying machinery. This module is the math the rest of the RL track rides on: how to formalize "an agent making decisions", how to compute a gradient through a sampled trajectory, why we subtract baselines, and what KL constraints buy you. Skip this only if you already know Sutton & Barto cold.
+
+<ModuleProgress
+  lessons={[
+    { slug: '/training/rl-foundations/mdp-bellman', title: 'MDPs & Bellman Equations', estMin: 12 },
+    { slug: '/training/rl-foundations/policy-gradient', title: 'Policy Gradient & REINFORCE', estMin: 14 },
+    { slug: '/training/rl-foundations/value-advantage', title: 'Value Functions, Advantage & GAE', estMin: 14 },
+    { slug: '/training/rl-foundations/trust-region-kl', title: 'Trust Regions, KL & Importance Sampling', estMin: 14 },
+  ]}
+/>
+
+<Capstone
+  title="Re-derive PPO from scratch on a postcard"
+  pitch="When you can write down PPO's loss without looking it up, and explain every term to a junior engineer in 90 seconds, you have a foundation worth building on."
+  what="Working in a single notebook: implement REINFORCE on CartPole (gym), add a learned value baseline, swap to GAE for advantage estimation, add the KL constraint and importance ratio. End state: ~150 lines that train CartPole-v1 to 500 reward in <2 minutes on CPU. The point is not the result; the point is that you typed every line of every equation."
+  sota={['gymnasium', 'PyTorch (CPU is fine)', 'Sutton & Barto Ch 13 as your reference']}
+  device="cpu"
+  time="One weekend"
+  level="beginner"
+/>

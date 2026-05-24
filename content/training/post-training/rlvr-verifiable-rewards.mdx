@@ -1,0 +1,210 @@
+---
+title: RLVR — Verifiable Rewards
+description: Reinforcement Learning with Verifiable Rewards — the paradigm that unlocked reasoning models. Math parsers, unit tests, format regexes; no reward model, no labelers.
+last_reviewed: 2026-05-25
+---
+# RLVR — Verifiable Rewards
+
+<Mode is="learn">
+
+The biggest unlock in LLM RL between 2023 and 2026 wasn't an algorithm. It was a *signal*: replace the learned reward model with a *verifier* — a math parser, a code executor, a format regex — that emits a deterministic correct/wrong scalar. No labelers. No RM drift. No reward hacking (or much less of it). DeepSeek-R1 demonstrated that this single change — RLVR — turns post-training into something that *generalizes*. This lesson is the paradigm, why it works, what tasks it applies to, and what it can't reach.
+
+## TL;DR
+
+- **RLVR (Reinforcement Learning with Verifiable Rewards)**: replace the learned RM with an oracle that *checks* the output. Math: exact-match. Code: unit tests. Format: regex. Reward = 0 or 1.
+- **The 2024 breakthrough**: DeepSeek-Math used RLVR with GRPO and got SOTA math reasoning. Then R1 (Jan 2025) used the same recipe at scale and matched o1.
+- **Why it works**: the signal is **noise-free** (a parser doesn't have labeler disagreement). It's **non-hackable** (the policy can't trick a unit test the way it tricks an RM). It's **cheap** (sandboxed verifier ≪ RM forward pass).
+- **What it's good for**: math, code, structured output, formal logic, anything where correctness is checkable.
+- **What it's bad for**: open-ended writing, creative tasks, soft preferences, anything subjective. RLHF/DPO still rules there.
+
+## Why this matters
+
+Every reasoning-model recipe in 2025-2026 is "RLVR + GRPO + cold-start SFT". The infrastructure surrounding RLVR — the verifier service, the code sandbox, the parser pipeline — is half the engineering job. Anthropic, OpenAI, DeepMind, DeepSeek all have internal teams building exactly this kind of infrastructure. It's where RL Engineer postings actually spend their time.
+
+## The concept
+
+Classical RLHF:
+
+$$
+r(x, y) = r_\phi(x, y) \quad \text{(learned scalar reward model)}
+$$
+
+RLVR:
+
+$$
+r(x, y) = \text{verifier}(x, y) \in \{0, 1\}
+$$
+
+where the verifier is a deterministic function. For math: parse the model's answer, compare to the known answer. For code: run unit tests in a sandbox. For format: regex-match.
+
+Combined with GRPO (which doesn't need a value function), the full algorithm is *radically simpler* than RLHF:
+
+```
+1. Sample prompt with known answer.
+2. Generate G rollouts from policy.
+3. Verifier scores each: 0 or 1.
+4. Group-relative advantage: a_i = (r_i - mean) / std.
+5. Gradient update with PPO-style clip + KL anchor.
+```
+
+No reward model. No critic. No labelers. The trainer is one file.
+
+## Why verifiable rewards generalize
+
+The remarkable empirical result: RLVR on *math* makes the model better at *general reasoning*. R1 trained on math + code transfers to GPQA, MMLU, ARC. Why?
+
+Two hypotheses (both probably true):
+
+1. **Chain-of-thought is task-general.** The reasoning patterns the model learns to produce on math ("let me work this out step by step", "actually I think I made an error", branching exploration) transfer to other domains where the model can deploy them.
+2. **Verifiers are noise-free.** A learned RM bottlenecks training when its noise floor is reached. A verifier has no noise floor, so training can keep extracting signal until the *policy* hits a wall.
+
+DeepSeek-R1-Zero's training curves are the cleanest evidence: accuracy keeps climbing for tens of thousands of RL steps, long after RLHF would have flatlined.
+
+## The verifier service — engineering reality
+
+What an RL-systems engineer actually builds:
+
+**For math:**
+- Sympy-based exact-match for symbolic answers.
+- Fraction/decimal normalization (model says `1/2`, ground truth says `0.5`).
+- Boxed-answer parsing (extracting `\boxed{...}` from the model output).
+- Numerical tolerance for floating-point.
+
+**For code:**
+- A **sandbox** (firejail, Bubblewrap, Docker, or a cloud sandbox like Modal/E2B). The model's code *runs* on the verifier.
+- A test suite per problem.
+- Hard timeouts (10-30s typical). Time-budget failures are the second-most-common error after wrong answers.
+- Network isolation (the policy will sometimes generate `import requests`...).
+
+**For format:**
+- Regex check for required structure (e.g. `<think>...</think><answer>...</answer>`).
+- Length bounds (rewards for hitting them; penalties for blowing past).
+
+**Latency budget.** At training scale, a verifier handles thousands of completions per second. Math parsers are easy (microseconds). Code sandboxes are hard — they're a real distributed system, often the most expensive component of the whole RL stack.
+
+## Mental model
+
+```mermaid
+flowchart LR
+  P[Prompt with known answer] -->|sample G rollouts| Pol[Policy pi_theta]
+  Pol --> Comp[Completions]
+  Comp -->|math: parser, code: sandbox, format: regex| V[Verifier]
+  V -->|0 or 1| R[Reward]
+  R -->|group normalize| A[Advantage a_i]
+  A --> GRPO[GRPO update]
+  GRPO --> Pol
+```
+
+The whole loop is on a postcard. The complexity is in the verifier.
+
+## What RLVR cannot reach
+
+RLVR works only when correctness is checkable. For open-ended tasks (writing, brainstorming, summarization, dialogue), there's no oracle. Frontier labs keep RLHF/DPO/RLAIF for these.
+
+Modern recipes are **multi-objective**: RLVR for math/code, RLAIF or DPO for helpfulness, KL anchor to a coherent base. Tülu 3 documents one such recipe in detail.
+
+## Key takeaways
+
+1. **RLVR = replace RM with a deterministic checker.** Math parser, unit tests, regex.
+2. **The recipe is RLVR + GRPO + cold-start SFT** — DeepSeek-Math, R1, every open reasoning model in 2025-2026.
+3. **The verifier service is the engineering** — code sandbox at scale is the hard part.
+4. **Math RLVR transfers to general reasoning.** Surprising and load-bearing.
+5. **RLVR only works for checkable tasks.** Open-ended generation still needs preference signals.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'paper', href: 'https://arxiv.org/abs/2402.03300', title: 'DeepSeekMath — DeepSeek-AI (Feb 2024)', author: 'DeepSeek-AI', note: 'Where GRPO + RLVR was first published. Section 4.1 on GRPO; Section 3 on verifiable rewards for math.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2501.12948', title: 'DeepSeek-R1 — DeepSeek-AI (Jan 2025)', author: 'DeepSeek-AI', note: 'The full R1 paper. RLVR scaled.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2411.15124', title: 'Tülu 3 — Allen AI', author: 'Allen AI (2024)', note: 'Open recipe combining RLVR (math+IFEval) with DPO. Section 4 is the cleanest implementation reference.' },
+    { kind: 'paper', href: 'https://arxiv.org/abs/2502.11703', title: 'Lambert et al. — RLVR for Open-Domain Tasks', note: 'Pushing RLVR beyond math/code to other checkable signals.' },
+    { kind: 'repo', href: 'https://github.com/huggingface/open-r1', title: 'HF — Open-R1', note: 'Full open replication of R1 including verifier code. Read src/open_r1/grpo.py and the math_verify reward function.' },
+    { kind: 'repo', href: 'https://github.com/huggingface/Math-Verify', title: 'HF Math-Verify', note: 'The actual math verifier library most open implementations now use. Sympy-based.' },
+    { kind: 'docs', href: 'https://modal.com/docs/guide/sandbox', title: 'Modal — Sandbox docs', note: 'One reference architecture for running untrusted model code at scale during training.' },
+    { kind: 'blog', href: 'https://www.interconnects.ai/p/an-rl-future-for-language-models', title: 'Nathan Lambert — An RL future for language models', note: 'Contextual essay on why RLVR changed the field.' },
+  ]}
+/>
+
+</Mode>
+
+<Mode is="reference">
+
+## TL;DR
+
+- Reward = deterministic verifier(x, y) ∈ {0, 1}.
+- Domains: math (parser), code (sandboxed unit tests), format (regex), constrained tasks.
+- Standard recipe: cold-start SFT → GRPO with RLVR.
+- Engineering reality: the verifier service (esp. code sandbox) is the hard part.
+
+## Why this matters
+
+Every reasoning model recipe in 2025-2026 uses this. Verifier infrastructure is a real engineering job.
+
+## Concrete walkthrough
+
+**Math verifier (pseudo-code):**
+
+```python
+def math_verify(completion: str, answer: str) -> float:
+    # Extract \boxed{...}
+    match = re.search(r"\\boxed\{(.*?)\}", completion)
+    if not match: return 0.0
+    pred = sympy.simplify(match.group(1))
+    ref  = sympy.simplify(answer)
+    return 1.0 if pred == ref else 0.0
+```
+
+**Code verifier (sketch):**
+
+```python
+def code_verify(completion: str, test_cases: list) -> float:
+    with sandbox(timeout=30, no_network=True) as sb:
+        sb.write_file("solution.py", extract_code(completion))
+        for inp, expected in test_cases:
+            try:
+                out = sb.run(f"python solution.py < input.txt", input=inp)
+                if out.strip() != expected.strip():
+                    return 0.0
+            except TimeoutError:
+                return 0.0
+    return 1.0
+```
+
+**Format reward (helps cold-start training):**
+
+```python
+def format_reward(completion: str) -> float:
+    if re.match(r"<think>.*?</think>\s*<answer>.*?</answer>", completion, re.DOTALL):
+        return 0.1   # small bonus, not the main signal
+    return 0.0
+```
+
+## Reward composition (Tülu 3 style)
+
+$$
+r(x, y) = \alpha_{math} \cdot r_{math}(x,y) + \alpha_{code} \cdot r_{code}(x,y) + \alpha_{format} \cdot r_{format}(y)
+$$
+
+with task-specific routing — math problems only get $r_{math}$, code only gets $r_{code}$, etc.
+
+## Key takeaways
+
+1. Verifier replaces RM for checkable tasks.
+2. Code sandbox is the hardest infrastructure.
+3. Math RLVR generalizes to non-math reasoning (empirical).
+4. Open-ended tasks still need RLHF/DPO/RLAIF.
+
+## Go deeper
+
+<Resources
+  items={[
+    { kind: 'paper', href: 'https://arxiv.org/abs/2501.12948', title: 'DeepSeek-R1', note: 'Reference paper.' },
+    { kind: 'repo', href: 'https://github.com/huggingface/open-r1', title: 'open-r1', note: 'Reference code.' },
+    { kind: 'repo', href: 'https://github.com/huggingface/Math-Verify', title: 'Math-Verify', note: 'Math verifier library.' },
+  ]}
+/>
+
+</Mode>
+
+<LessonComplete />
