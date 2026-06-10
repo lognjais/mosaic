@@ -17,6 +17,7 @@
  *   1. Ship TWO deep flagship portfolio projects + one optional:
  *      P1: mini-vLLM         — paged KV cache, continuous batching, OpenAI API,
  *                              one accelerator (quant OR specdec), in-loop NCU
+ *                              (NVIDIA Nsight Compute — the GPU kernel profiler)
  *                              profiling baked in from W2 onward. THE centerpiece.
  *      P2: merged vLLM / SGLang PR — promoted from "side goal" to *flagship*.
  *                              The hiring manager at Anthropic / Together / Modal
@@ -24,7 +25,8 @@
  *                              design-comment-acked PR open by W6; FIRST PR merged
  *                              by W8; THREE PRs by W12 (vLLM ≥ 1, SGLang ≥ 1,
  *                              third one anywhere — FlashInfer, Triton, llama.cpp).
- *      P3-optional: dist-inference — TP or multi-worker replica serving, scaling
+ *      P3-optional: dist-inference — TP (tensor parallelism — one model split
+ *                              across GPUs) or multi-worker replica serving, scaling
  *                              bench. Keep if W1-W10 ran on schedule; drop if W6
  *                              slipped. RL-systems pivot (Atlas Year-1) uses this
  *                              W9-W10 slot for a GRPO trainer with mini-vLLM as
@@ -75,6 +77,7 @@
  *
  * Half-lives:
  *   durable — attention primitive, KV cache, autoregressive mechanics, roofline
+ *             (the compute-vs-memory-bandwidth performance-ceiling model)
  *             intuition, distributed primitives. ~10y stable.
  *   medium  — vLLM scheduler patterns, paged-attention block layout, current
  *             quant recipes, FA versions. ~3-5y.
@@ -748,7 +751,7 @@ export const PATH: Phase[] = [
             title: 'Survey the four serving stacks',
             body:
               'Open the README + top-level architecture doc for vLLM, SGLang, TGI, and llama.cpp. Do NOT clone yet. Just understand the shape: what is the engine boundary, what is the scheduler boundary, what is the OpenAI-compat layer.',
-            verify: 'Table in notes: stack | language | scheduler | OpenAI-compat | TP support',
+            verify: 'Table in notes: stack | language | scheduler | OpenAI-compat | TP support (TP = tensor parallelism, splitting one model across GPUs)',
             hours: '1.5h',
             resources: [R.vllm_repo, R.sglang_repo, R.tgi_repo, R.llamacpp_repo],
           },
@@ -768,7 +771,7 @@ export const PATH: Phase[] = [
             track: 'build',
             title: 'north-portfolio meta-repo with four project skeletons',
             body:
-              'Single GitHub org (or your account). One umbrella README that links the THREE flagship projects: mini-vllm, ai-gateway, dist-inference. Each project gets its own repo with a README stub stating goal + verify + bench plan. No code yet. (mini-rag-demo is created later inside W7 as a side-quest; do NOT create it now or it becomes psychological scope creep.)',
+              'Single GitHub org (or your account). One umbrella README that links the THREE flagship projects: mini-vllm, ai-gateway, dist-inference. Each project gets its own repo with a README stub stating goal + verify + bench plan. No code yet. (mini-rag-demo is created later inside W7 as a side-quest; do NOT create it now or it becomes psychological scope creep.) CONVENTION for where deliverables live this sprint: a project\'s measurement docs go in THAT project\'s repo under docs/ (so the baseline in b3 is mini-vllm/docs/baseline.md, and later BENCHMARKS.md files live in each project repo). Job-search and personal-prep docs (targets, funnel-audit, math-diagnostic) live in the north-portfolio umbrella repo under docs/.',
             verify: 'Four public repos exist (umbrella + 3 flagships); umbrella README links them; each child README has a Verify + Bench section',
             hours: '1.5h',
           },
@@ -777,8 +780,8 @@ export const PATH: Phase[] = [
             track: 'build',
             title: 'Baseline: run HF Llama-3-8B generate() on your GPU, get TTFT + ITL numbers',
             body:
-              'No framework, no batching, no streaming — just `model.generate(...)` on a single prompt. Measure TTFT (time-to-first-token) and ITL (inter-token latency) at batch=1, prompt=512, gen=128. This is your starting baseline; every project will be measured against it.',
-            verify: 'docs/baseline.md committed with hardware, model, dtype, TTFT, ITL, peak memory',
+              'No framework, no batching, no streaming — just `model.generate(...)` on a single prompt. Measure TTFT (time-to-first-token) and ITL (inter-token latency) at batch=1, prompt=512, gen=128. This is your starting baseline; every project will be measured against it. Write the result to mini-vllm/docs/baseline.md (the mini-vllm repo you created in b2; make the docs/ folder if it does not exist).',
+            verify: 'mini-vllm/docs/baseline.md committed with hardware, model, dtype, TTFT, ITL, peak memory',
             hours: '2h',
             resources: [R.hf_generate],
           },
@@ -803,7 +806,7 @@ export const PATH: Phase[] = [
               '  Tier D (aspirational stretches): keep to ≤3 names. These are the "shoot your shot" plays, not the spine of the funnel.\n' +
               'Goal split: 8 A, 8 B, 6 C, 3 D. For each: role title, current openings URL, named referrer candidate (LinkedIn URL). OSS: 10 "good first issue" tickets across vLLM/SGLang/TGI/llama.cpp.',
             verify:
-              'docs/targets.md committed with 25 companies tiered A/B/C/D, named referrer per row, OSS shortlist of 10 issues',
+              'north-portfolio/docs/targets.md committed (umbrella repo) with 25 companies tiered A/B/C/D, named referrer per row, OSS shortlist of 10 issues',
             hours: '3h',
           },
           {
@@ -819,7 +822,7 @@ export const PATH: Phase[] = [
               'Relocation is a downstream decision, not a W0 decision. If you get a Bangalore-onsite offer, you decide then with the actual comp number in hand — and the move is a 1-week logistics problem, not a sprint blocker.\n' +
               'If ≥18 of the 25 companies fail check (2), the funnel is structurally broken regardless of where you live — stop and re-tier before W1.',
             verify:
-              'docs/funnel-audit.md committed with per-company rows: india_employees(y/n) · india_remote_role_open(y/n) · onsite_required_pre_offer(y/n) · realistic(y/n). At least 10 rows green on "realistic."',
+              'north-portfolio/docs/funnel-audit.md committed (umbrella repo) with per-company rows: india_employees(y/n) · india_remote_role_open(y/n) · onsite_required_pre_offer(y/n) · realistic(y/n). At least 10 rows green on "realistic."',
             hours: '2h',
           },
           {
@@ -864,9 +867,9 @@ export const PATH: Phase[] = [
             track: 'prep',
             title: 'Math diagnostic + targeted refresh (linalg)',
             body:
-              'You completed Math4ML in 2023 but the muscle has atrophied. Run a 30-min diagnostic: by hand on paper, (a) derive softmax\'s Jacobian, (b) compute the FLOPs of a (B, S, D) × (D, D) matmul, (c) explain why attention is O(S²·D) memory-bound at decode time, (d) write the SVD of a 3×3 matrix you make up. If you stall on ≥2 of 4, watch 3Blue1Brown Essence of Linear Algebra (~3h) at 1.5× this week. The goal is not mastery; it is making sure W2/W4/W8 roofline reasoning is not blocked by rust. Defer probability/stats refresh to W1.',
+              'You completed Math4ML in 2023 but the muscle has atrophied. Run a 30-min diagnostic: by hand on paper, (a) derive softmax\'s Jacobian, (b) compute the FLOPs of a (B, S, D) × (D, D) matmul, (c) explain why attention is O(S²·D) memory-bound at decode time, (d) write the SVD of a 3×3 matrix you make up. If you stall on ≥2 of 4, watch 3Blue1Brown Essence of Linear Algebra (~3h) at 1.5× this week. The goal is not mastery; it is making sure W2/W4/W8 roofline reasoning (the compute-vs-memory-bandwidth performance-ceiling model) is not blocked by rust. Defer probability/stats refresh to W1.',
             verify:
-              'docs/math-diagnostic.md committed with the four answers + a self-rating (1-5) on each; 3B1B watched if rating < 3 on any',
+              'north-portfolio/docs/math-diagnostic.md committed (umbrella repo) with the four answers + a self-rating (1-5) on each; 3B1B watched if rating < 3 on any',
             hours: '2h',
             resources: [R.three_blue_one_brown_linalg, R.math4ml_coursera],
           },
@@ -888,7 +891,7 @@ export const PATH: Phase[] = [
     color: 'var(--m-track-architecture)',
     artifact: 'mini-vllm v0.1 — pure-PyTorch generate with explicit KV cache; profile in notes',
     context:
-      'Before you can build a scheduler, you must feel the autoregressive loop in your fingertips. Prefill is parallel and compute-bound. Decode is serial and HBM-bound. The KV cache exists to convert decode from O(N²) to O(N). If you cannot explain that without looking it up, the rest of the sprint is built on sand.',
+      'Before you can build a scheduler, you must feel the autoregressive loop in your fingertips. Prefill is parallel and compute-bound. Decode is serial and HBM-bound (HBM = the GPU\'s high-bandwidth memory). The KV cache exists to convert decode from O(N²) to O(N). If you cannot explain that without looking it up, the rest of the sprint is built on sand.',
     weeks: [
       {
         number: 1,
@@ -955,7 +958,7 @@ export const PATH: Phase[] = [
             title: 'Profile prefill vs decode — three measurements',
             body:
               'Prompt=512, gen=128. Measure: (a) prefill latency (s), (b) per-decode-step latency (ms), (c) peak HBM. Compare to W0 baseline. Compute arithmetic intensity for prefill and decode and reason about which is HBM-bound.',
-            verify: 'docs/profile.md committed with table + a one-line conclusion per measurement',
+            verify: 'mini-vllm/docs/profile.md committed with table + a one-line conclusion per measurement',
             hours: '2h',
             resources: [R.kipperly_speed, R.nsight_compute],
           },
@@ -974,7 +977,7 @@ export const PATH: Phase[] = [
             title: 'vLLM source — read engine/llm_engine.py top-level loop',
             body:
               'Just read. No PR yet. Build a mental map: where is the scheduler called, where is the model executed, where do KV caches live. Sketch a one-page block diagram.',
-            verify: 'docs/vllm-engine-sketch.md committed with a block diagram (ASCII or PNG)',
+            verify: 'mini-vllm/docs/vllm-engine-sketch.md committed with a block diagram (ASCII or PNG)',
             hours: '2h',
             resources: [R.vllm_repo],
           },
@@ -993,7 +996,7 @@ export const PATH: Phase[] = [
             title: 'Math refresh — softmax, temperature, sampling, entropy',
             body:
               'Two hours, paper-and-pen. Derive: (a) softmax(z/T) and what temperature does to the entropy of the distribution, (b) top-k and top-p sampling as restrictions of the softmax, (c) cross-entropy loss vs negative log-likelihood, (d) why argmax = greedy decoding and how nucleus sampling diverges. The mini-vllm generate loop you just wrote uses all four. If you cannot derive them, you do not understand your own code.',
-            verify: 'docs/math-w1.md with the four derivations; cross-check by varying T and top_p in mini-vllm and predicting the entropy change before measuring',
+            verify: 'north-portfolio/docs/math-w1.md with the four derivations; cross-check by varying T and top_p in mini-vllm and predicting the entropy change before measuring',
             hours: '2h',
             resources: [R.math4ml_coursera],
           },
@@ -1021,7 +1024,7 @@ export const PATH: Phase[] = [
         number: 2,
         title: 'OpenAI-compatible streaming server',
         goal:
-          'A FastAPI server with /v1/chat/completions that streams tokens via SSE. Static batching across concurrent requests. Two known bugs documented.',
+          'A FastAPI server with /v1/chat/completions that streams tokens via SSE (Server-Sent Events). Static batching across concurrent requests. Two known bugs documented.',
         tasks: [
           {
             id: 'n-w2-prereq',
@@ -1030,7 +1033,7 @@ export const PATH: Phase[] = [
             body:
               'Can you do these cold?\n' +
               '  • async/await Python + async generators (for StreamingResponse)\n' +
-              '  • GPU memory hierarchy basics — HBM / L2 / SMEM, what NCU measures\n' +
+              '  • GPU memory hierarchy basics — HBM / L2 / SMEM, what NCU (NVIDIA Nsight Compute, the GPU profiler) measures\n' +
               'NCU itself is meant to feel partly foggy this week — that is the point. But you need the hierarchy intuition to read the report.',
             verify: 'Quick self-check; if GPU memory hierarchy <3, watch GPU MODE lec 1 before b4',
             hours: '15m check + remediation in flight',
@@ -1101,7 +1104,7 @@ export const PATH: Phase[] = [
             body:
               'One Modal H100 hour (paid). Run `ncu --set roofline --target-processes all python bench_decode.py` on Llama-3-8B at batch=1, seq=512. Capture: arithmetic intensity, HBM throughput, achieved % of peak. You will not understand every metric yet — that is fine. Commit the report. You will reread it after W8 and the numbers will mean something different. The goal here is to make NCU not-scary by W4.',
             verify:
-              'docs/ncu-w2.md committed with the three numbers + one-paragraph "what I think I saw" written without looking it up',
+              'mini-vllm/docs/ncu-w2.md committed with the three numbers + one-paragraph "what I think I saw" written without looking it up',
             hours: '2h',
             resources: [R.nsight_compute, R.kipperly_speed, R.modal_docs],
           },
@@ -1117,10 +1120,10 @@ export const PATH: Phase[] = [
           {
             id: 'n-w2-a2',
             track: 'apply',
-            title: 'BENCHMARKS.md — first real entry',
+            title: 'mini-vllm/BENCHMARKS.md — first real entry',
             body:
               'Hardware row, dtype row. Three rows for batch=1/4/16 with TTFT, ITL, throughput, peak HBM. Note the static-batching head-of-line issue at the bottom.',
-            verify: 'BENCHMARKS.md committed; numbers reproducible from a single command',
+            verify: 'mini-vllm/BENCHMARKS.md committed; numbers reproducible from a single command',
             hours: '1.5h',
           },
           {
@@ -1129,7 +1132,7 @@ export const PATH: Phase[] = [
             title: 'vLLM scheduler — read core/scheduler.py',
             body:
               'Just read. Identify the iteration loop, the running/waiting/swapped queues, and the preemption logic. Compare to your static batcher and write down the three things vLLM does that you do not.',
-            verify: 'docs/vllm-scheduler-notes.md with the three gaps listed',
+            verify: 'mini-vllm/docs/vllm-scheduler-notes.md with the three gaps listed',
             hours: '2h',
             resources: [R.vllm_repo],
           },
@@ -1195,7 +1198,7 @@ export const PATH: Phase[] = [
             title: 'vLLM — attention/backends + block_manager',
             body:
               'Read `vllm/core/block_manager.py` and one backend (e.g. `attention/backends/flash_attn.py`). Understand the producer/consumer between the manager and the kernel.',
-            verify: 'docs/vllm-block-manager.md sketches the class API + how block_tables are passed to the kernel',
+            verify: 'mini-vllm/docs/vllm-block-manager.md sketches the class API + how block_tables are passed to the kernel',
             hours: '2h',
             resources: [R.vllm_repo],
           },
@@ -1223,7 +1226,7 @@ export const PATH: Phase[] = [
             title: 'Concurrent requests — KV cache no longer OOMs at batch=16',
             body:
               'Before: dense KV per sequence wastes memory proportional to max_seq_len. After: paging means you only consume blocks proportional to actual tokens. Demonstrate this with a memory plot.',
-            verify: 'BENCHMARKS.md updated: peak HBM at batch=16 drops by ≥ 30% vs W2 baseline',
+            verify: 'mini-vllm/BENCHMARKS.md updated: peak HBM at batch=16 drops by ≥ 30% vs W2 baseline',
             hours: '2h',
           },
           {
@@ -1242,7 +1245,7 @@ export const PATH: Phase[] = [
             title: 'Write-up "Paged KV cache in 400 lines of Python" + weekly public post',
             body:
               'A blog-style README section (or separate post). Show the block_table diagram. Explain why it works. Show the memory plot. Link the code. This is the first artifact a serving-team hiring manager will skim. Make it scannable. PUBLISH: Friday thread — lead with the memory-plot chart ("dense KV at batch=16 OOMs; paged drops peak HBM by ≥30%"). The diagram + chart + repo link is the highest-shareability post of the sprint so far. Cross-post to LinkedIn; consider posting to r/MachineLearning if writeup polish is high.',
-            verify: 'docs/paged-kv-writeup.md ≤ 1500 words; Twitter/X thread + LinkedIn post live; (optional) r/MachineLearning submission link recorded',
+            verify: 'mini-vllm/docs/paged-kv-writeup.md ≤ 1500 words; Twitter/X thread + LinkedIn post live; (optional) r/MachineLearning submission link recorded',
             hours: '2.5h',
           },
           {
@@ -1251,7 +1254,7 @@ export const PATH: Phase[] = [
             title: 'OSS scouting — find one realistic vLLM PR',
             body:
               'Browse vLLM "good first issue" + "help wanted". Find one ticket where the scope is real (not "fix typo") but bounded (one file, one test). Comment on it expressing intent. Do not start work yet — you commit W10.',
-            verify: 'Comment posted on a single issue; URL saved to docs/targets.md',
+            verify: 'Comment posted on a single issue; URL saved to north-portfolio/docs/targets.md',
             hours: '1.5h',
             resources: [R.vllm_repo],
           },
@@ -1327,7 +1330,7 @@ export const PATH: Phase[] = [
             title: 'vLLM v1 engine RFC + SGLang scheduler blog',
             body:
               'Read both. Two different scheduler designs solving the same problem. You will internalize the tradeoffs better by seeing both than by reading either alone.',
-            verify: 'docs/scheduler-comparison.md with a 3-row table (vLLM v0 / vLLM v1 / SGLang) on scheduling policy',
+            verify: 'mini-vllm/docs/scheduler-comparison.md with a 3-row table (vLLM v0 / vLLM v1 / SGLang) on scheduling policy',
             hours: '2h',
             resources: [R.vllm_repo, R.sglang_repo],
           },
@@ -1346,7 +1349,7 @@ export const PATH: Phase[] = [
             title: 'Chunked prefill — split long prompts across iterations',
             body:
               'If a waiting request has prompt > chunk_size, schedule chunk_size of its prefill alongside running decodes. Tune chunk_size for your hardware (start 512).',
-            verify: 'P99 ITL for decode-only requests does NOT degrade when a long-prompt request enters; chart in BENCHMARKS.md',
+            verify: 'P99 ITL for decode-only requests does NOT degrade when a long-prompt request enters; chart in mini-vllm/BENCHMARKS.md',
             hours: '3h',
             resources: [R.sarathi_serve],
           },
@@ -1364,9 +1367,9 @@ export const PATH: Phase[] = [
             track: 'build',
             title: 'NCU profile of the scheduler iteration — the headline number',
             body:
-              'Second paid Modal H100 hour. `ncu --set full` on one iteration of the continuous-batching loop at concurrency=32. Capture: kernel breakdown (which kernels dominate ms), HBM throughput, achieved TC % on the matmuls. Compare against the W2 baseline. This is the report you screenshot for the BENCHMARKS chart and walk recruiters through in the SD interview.',
+              'Second paid Modal H100 hour. `ncu --set full` on one iteration of the continuous-batching loop at concurrency=32. Capture: kernel breakdown (which kernels dominate ms), HBM throughput, achieved TC % (Tensor Core utilization) on the matmuls. Compare against the W2 baseline. This is the report you screenshot for the BENCHMARKS chart and walk recruiters through in the SD (system-design) interview.',
             verify:
-              'docs/ncu-w4.md committed with kernel-time pie chart, HBM throughput, achieved-TC % vs W2; one-paragraph "what changed and why"',
+              'mini-vllm/docs/ncu-w4.md committed with kernel-time pie chart, HBM throughput, achieved-TC % vs W2; one-paragraph "what changed and why"',
             hours: '2.5h',
             resources: [R.nsight_compute, R.kipperly_speed, R.modal_docs],
           },
@@ -1385,7 +1388,7 @@ export const PATH: Phase[] = [
             title: 'Outreach round 1 — 5 referrer-target DMs',
             body:
               'Pick 5 people from your target-company list who work in inference/serving. Short DM: "I am building a vLLM-style engine to learn the lane, here is the BENCHMARKS chart, can I ask one specific question about your team\'s scheduler?" The chart is what earns the reply.',
-            verify: '5 DMs sent; replies tracked in docs/outreach.md',
+            verify: '5 DMs sent; replies tracked in north-portfolio/docs/outreach.md',
             hours: '1.5h',
           },
           {
@@ -1451,7 +1454,7 @@ export const PATH: Phase[] = [
             track: 'read',
             title: 'AWQ + GPTQ overview',
             body:
-              'Read AWQ §1-3 and the GPTQ overview. Goal: understand calibration sets, group sizes, the accuracy/throughput tradeoff. You probably will not implement either from scratch — you will use a library — but you must reason about which to pick.',
+              'Read AWQ §1-3 and the GPTQ overview (AWQ and GPTQ are the two dominant post-training weight-quantization methods). Goal: understand calibration sets, group sizes, the accuracy/throughput tradeoff. You probably will not implement either from scratch — you will use a library — but you must reason about which to pick.',
             verify: 'Notes: AWQ vs GPTQ decision tree (when to use which)',
             hours: '1.5h',
             resources: [R.awq, R.gptq],
@@ -1472,7 +1475,7 @@ export const PATH: Phase[] = [
             title: 'Decide: quant OR specdec. Commit Monday.',
             body:
               'Write a 200-word decision doc. Stop second-guessing after Monday. The hire signal is "shipped one well" not "started two".',
-            verify: 'docs/w5-decision.md committed Monday EOD',
+            verify: 'mini-vllm/docs/w5-decision.md committed Monday EOD',
             hours: '1h',
           },
           {
@@ -1500,16 +1503,16 @@ export const PATH: Phase[] = [
           {
             id: 'n-w5-b4',
             track: 'build',
-            title: 'Quality eval — MT-Bench subset or in-house golden set',
+            title: 'Quality eval — MT-Bench (multi-turn LLM quality benchmark) subset or in-house golden set',
             body:
               'Pick 30 prompts. Run pre- and post-acceleration. Score with a judge model (GPT-4o or Claude). Quant should be ≤ 1% degradation; specdec at T=0 should be identical.',
-            verify: 'docs/quality-eval.md with per-prompt scores and aggregate delta',
+            verify: 'mini-vllm/docs/quality-eval.md with per-prompt scores and aggregate delta',
             hours: '2h',
           },
           {
             id: 'n-w5-a1',
             track: 'apply',
-            title: 'BENCHMARKS.md — the accelerator section',
+            title: 'mini-vllm/BENCHMARKS.md — the accelerator section',
             body:
               'Before/after table: throughput, peak HBM, p99 ITL, quality delta. The quality column is the one that makes this credible — without it, recruiters assume you broke the model.',
             verify: 'Four-column section pushed; numbers reproducible',
@@ -1530,7 +1533,7 @@ export const PATH: Phase[] = [
             title: 'Behavioral STAR stories — draft 6',
             body:
               'Six 90-second stories: ambiguity, conflict, failure, scope-cut, perf-win, mentorship. From your existing 6yr SWE career, not from this sprint. Practice out loud once each.',
-            verify: 'docs/behavioral.md with six STAR-shaped entries',
+            verify: 'north-portfolio/docs/behavioral.md with six STAR-shaped entries',
             hours: '2h',
           },
           {
@@ -1573,7 +1576,7 @@ export const PATH: Phase[] = [
             title: 'OSS PR step 1: codebase tour + issue selection (per the playbook)',
             body:
               'Re-read /applied/inference-internals/oss-contribution-playbook (your own work). Pick ONE project: vLLM is highest visibility but slowest review (1-3w); SGLang is faster review (3-10d) and smaller maintainer team. Then pick ONE issue with three filters: (a) the tagging maintainer reviewed PRs in the last 7 days, (b) scope <200 LOC realistic, (c) you can write a 1-paragraph design before coding. Aim for new-model-architecture, sampling-param exposure, or scheduler-policy tweaks — these are the playbook\'s "lands easily" zones.',
-            verify: 'docs/oss-pr-selection.md: project chosen, issue link, maintainer activity proof (PRs in last 7d), 3-filter scoring sheet',
+            verify: 'north-portfolio/docs/oss-pr-selection.md: project chosen, issue link, maintainer activity proof (PRs in last 7d), 3-filter scoring sheet',
             hours: '2h',
             resources: [R.vllm_repo, R.sglang_repo],
           },
@@ -1583,7 +1586,7 @@ export const PATH: Phase[] = [
             title: 'OSS PR step 2: write the design comment',
             body:
               '200-400 words. What you propose, scope estimate, test plan, benchmark methodology, links to relevant existing files. Post on the issue. The design comment is the artifact maintainers triage on — and the cheapest signal to them that you\'ve read the code. Wait for ack before writing implementation code. Use ack-wait time on n-w6-oss3 implementation skeleton, OR on ai-gateway if PR scope is small.',
-            verify: 'Design comment posted on the issue thread; URL committed to docs/oss-pr-selection.md',
+            verify: 'Design comment posted on the issue thread; URL committed to north-portfolio/docs/oss-pr-selection.md',
             hours: '2h',
           },
           {
@@ -1592,7 +1595,7 @@ export const PATH: Phase[] = [
             title: 'OSS PR step 3: implementation in branch (after ack)',
             body:
               'Once maintainer acks the design: implement on a feature branch in your fork. Match the project\'s existing conventions exactly (lint, naming, tests). Benchmarks for any perf claim. Open the PR by Friday EOD even if not yet merge-ready; the *open* PR is the W6 deliverable. Subsequent review iterations land in W7-W8.',
-            verify: 'PR opened against vllm-project/vllm or sgl-project/sglang. URL in docs/oss-pr-selection.md.',
+            verify: 'PR opened against vllm-project/vllm or sgl-project/sglang. URL in north-portfolio/docs/oss-pr-selection.md.',
             hours: '6-10h',
           },
           {
@@ -1601,7 +1604,7 @@ export const PATH: Phase[] = [
             title: 'LiteLLM Router — read the source (only if PR opened by Wed)',
             body:
               'Specifically `litellm/router.py`. Understand the routing strategies (least-busy, weighted, latency-based), the cooldown logic, the fallback chain.',
-            verify: 'docs/litellm-router-notes.md with the four routing strategies summarized',
+            verify: 'ai-gateway/docs/litellm-router-notes.md with the four routing strategies summarized',
             hours: '2h',
             resources: [R.litellm_repo],
           },
@@ -1610,7 +1613,7 @@ export const PATH: Phase[] = [
             track: 'read',
             title: 'Portkey + Cloudflare AI Gateway docs',
             body: 'Two commercial reference architectures. Steal the features list and split it into "this week" vs "next week" vs "skip."',
-            verify: 'docs/gateway-features.md with each feature tagged W6 / W7 / skip',
+            verify: 'ai-gateway/docs/gateway-features.md with each feature tagged W6 / W7 / skip',
             hours: '1h',
             resources: [R.portkey_gateway, R.cf_ai_gateway],
           },
@@ -1647,7 +1650,7 @@ export const PATH: Phase[] = [
             track: 'apply',
             title: 'ai-gateway README v0.1 — what it does today, what is coming next week',
             body:
-              'Architecture diagram (Excalidraw or Mermaid). Numbers table: fallback success rate during chaos test, p50/p99 added latency vs direct provider call. Explicit "next week" section listing cache / OTel / rate-limit / RAG side-quest. The "honest in-progress" framing reads well to engineering hiring managers.',
+              'Architecture diagram (Excalidraw or Mermaid). Numbers table: fallback success rate during chaos test, p50/p99 added latency vs direct provider call. Explicit "next week" section listing cache / OTel (OpenTelemetry) / rate-limit / RAG side-quest. The "honest in-progress" framing reads well to engineering hiring managers.',
             verify: 'README pushed; diagram embedded; W7 roadmap section visible',
             hours: '1.5h',
           },
@@ -1747,7 +1750,7 @@ export const PATH: Phase[] = [
             id: 'n-w7-b3',
             track: 'build',
             title: 'Rate limiting — token-bucket per API key',
-            body: 'Per-key RPM + TPM limits. Return 429 with Retry-After header. Test under load with a small load-test script (locust or hey).',
+            body: 'Per-key RPM + TPM (requests-per-minute + tokens-per-minute) limits. Return 429 with Retry-After header. Test under load with a small load-test script (locust or hey).',
             verify: 'Under 2× limit traffic, exactly the over-limit fraction gets 429; under limit, 0% rejection',
             hours: '2h',
           },
@@ -1757,7 +1760,7 @@ export const PATH: Phase[] = [
             title: 'Load test — 100 RPS mixed workload',
             body:
               'Synthetic 100-RPS mix (80% short, 20% long) for ~10 min. Capture: p50/p95/p99 latency, cache hit rate, fallback rate. Two ways: (a) PAID — one Modal H100 hour with your mini-vllm as one backend, proves end-to-end; (b) FREE — locally against mocked OpenAI/Anthropic responders, proves the gateway logic without the GPU loop. Either works for the hire signal. Use (a) only if you have Modal budget left; else (b).',
-            verify: 'BENCHMARKS-gateway.md committed with the three latency percentiles, hit/fallback rates, mode used (paid/free), and a one-paragraph honest assessment',
+            verify: 'ai-gateway/docs/BENCHMARKS-gateway.md committed (in the ai-gateway repo) with the three latency percentiles, hit/fallback rates, mode used (paid/free), and a one-paragraph honest assessment',
             hours: '2.5h',
             resources: [R.modal_docs],
           },
@@ -1766,7 +1769,7 @@ export const PATH: Phase[] = [
             track: 'build',
             title: 'mini-rag-demo (Applied-AI side-quest, capped at 2 days)',
             body:
-              'Companion repo, NOT flagship. Single file ≤500 LOC. 20-Q gold set on a corpus you care about (Mosaic content, K8s docs, whatever). BM25 + dense retrieval, RRF fuse, bge-reranker, top-3 chunks to your gateway. Compute precision@3 + ragas faithfulness on the 20 questions. The point: a resume bullet that says "hybrid retrieval, cross-encoder rerank, eval harness" — backed by a tiny working repo. Do NOT spend more than 2 days here. If it slips, ship what you have.',
+              'Companion repo, NOT flagship. Single file ≤500 LOC. 20-Q gold set on a corpus you care about (Mosaic content, K8s docs, whatever). BM25 + dense retrieval, RRF (reciprocal rank fusion) fuse, bge-reranker, top-3 chunks to your gateway. Compute precision@3 + ragas faithfulness on the 20 questions. The point: a resume bullet that says "hybrid retrieval, cross-encoder rerank, eval harness" — backed by a tiny working repo. Do NOT spend more than 2 days here. If it slips, ship what you have.',
             verify:
               'mini-rag-demo repo public; README ≤ 400 words; eval table with 2 rows (BM25 only / hybrid+rerank) and both metrics; total time spent ≤ 2 days (track it)',
             hours: '6h',
@@ -1787,7 +1790,7 @@ export const PATH: Phase[] = [
             title: 'Applications — first 5',
             body:
               'Five real applications this week. Tailored cover note (3 sentences) referencing one specific thing the team works on. Link mini-vllm + ai-gateway. Mention mini-rag-demo as a one-line "also" — never the headline.',
-            verify: '5 applications submitted; docs/applications.md tracker started',
+            verify: '5 applications submitted; north-portfolio/docs/applications.md tracker started (umbrella repo)',
             hours: '2h',
           },
           {
@@ -1840,8 +1843,8 @@ export const PATH: Phase[] = [
             body:
               'Can you do these cold?\n' +
               '  • H100 bandwidth pyramid (HBM3 ≈ 3.35 TB/s, L2 ≈ 50 MB, SMEM ≈ 228 KB/SM, regs ≈ 65k/SM)\n' +
-              '  • roofline reflex — the AI calculation you do in a1\n' +
-              '  • Tensor Core shape constraints (wgmma; when matmul falls back to CUDA cores)\n' +
+              '  • roofline reflex — the arithmetic-intensity calculation you do in a1\n' +
+              '  • Tensor Core shape constraints (wgmma, the Hopper warpgroup matmul instruction; when matmul falls back to CUDA cores)\n' +
               'Dense week — gap-fills before the kernel builds save days mid-week.',
             verify: 'Quick self-check; remediation started if any reflex rating <3',
             hours: '15m check + remediation in flight',
@@ -1900,7 +1903,7 @@ export const PATH: Phase[] = [
             title: 'NCU profile of the matmul — TC utilization check',
             body:
               'Run `ncu --set full python kernels/bench_matmul.py`. Find the SM__pipe_tensor_op metric. Verify Tensor Cores are actually engaged (not falling back to CUDA cores).',
-            verify: 'docs/ncu-report.md committed with the TC % number and a one-paragraph interpretation',
+            verify: 'mini-vllm/docs/ncu-report.md committed with the TC % number and a one-paragraph interpretation',
             hours: '2h',
             resources: [R.nsight_compute],
           },
@@ -1909,8 +1912,8 @@ export const PATH: Phase[] = [
             track: 'apply',
             title: 'Writeup — "Roofline for an inference kernel author"',
             body:
-              'Short post. The H100 ridge point ≈ AI of 295 FLOPs/byte (fp16). Show: your matmul\'s observed AI, the regime it sits in, the gap from peak, and what you would tune next. One diagram. This is the writeup that gets re-shared.',
-            verify: 'docs/roofline-writeup.md ≤ 1200 words; one chart',
+              'Short post. The H100 ridge point ≈ arithmetic intensity (AI) of 295 FLOPs/byte (fp16). Show: your matmul\'s observed AI, the regime it sits in, the gap from peak, and what you would tune next. One diagram. This is the writeup that gets re-shared.',
+            verify: 'mini-vllm/docs/roofline-writeup.md ≤ 1200 words; one chart',
             hours: '2h',
             resources: [R.kipperly_speed, R.flashattention2],
           },
@@ -1963,7 +1966,7 @@ export const PATH: Phase[] = [
         number: 9,
         title: 'Multi-worker serving with a scaling chart',
         goal:
-          'Either: a replica router with consistent hashing + per-replica queue + health checks, OR a 2-GPU TP implementation for a small model. Scaling chart in BENCHMARKS.md.',
+          'Either: a replica router with consistent hashing + per-replica queue + health checks, OR a 2-GPU TP implementation for a small model. Scaling chart in dist-inference/BENCHMARKS.md.',
         tasks: [
           {
             id: 'n-w9-prereq',
@@ -2011,7 +2014,7 @@ export const PATH: Phase[] = [
             title: 'Pick: replica-serving OR 2-GPU TP. Commit Monday.',
             body:
               'Replica-serving = process-level replicas behind a router (works on 1 GPU; demonstrates dispatch). 2-GPU TP = the real thing (requires 2 GPUs; demonstrates collective math).',
-            verify: 'docs/w9-decision.md committed Monday EOD',
+            verify: 'dist-inference/docs/w9-decision.md committed Monday EOD',
             hours: '1h',
           },
           {
@@ -2039,7 +2042,7 @@ export const PATH: Phase[] = [
             title: 'Scaling chart',
             body:
               'Throughput vs replicas (or vs TP degree). Linear scaling is the asymptote you compare against. Annotate the gap and explain it (HBM, interconnect, kernel-launch overhead, scheduler contention).',
-            verify: 'Chart in BENCHMARKS.md with annotated gap explanation',
+            verify: 'Chart in dist-inference/BENCHMARKS.md with annotated gap explanation',
             hours: '2h',
           },
           {
@@ -2105,7 +2108,7 @@ export const PATH: Phase[] = [
             track: 'read',
             title: 'Re-read the W3 OSS scouting comment thread',
             body: 'You commented on a vLLM issue at W3. Maintainers may have replied. If the original ticket is dead, pick another from your shortlist.',
-            verify: 'Decision in docs/oss-target.md: pursuing ticket X (URL), reason',
+            verify: 'Decision in north-portfolio/docs/oss-target.md (umbrella repo): pursuing ticket X (URL), reason',
             hours: '45m',
           },
           {
@@ -2163,7 +2166,7 @@ export const PATH: Phase[] = [
             id: 'n-w10-p1',
             track: 'prep',
             title: 'System-design page 5 — "Design Embeddings Serving at Scale"',
-            body: 'Constraints (1B vectors, 10k QPS, p99 < 30ms). Index choice (HNSW vs IVF). Sharding. Hot-key handling.',
+            body: 'Constraints (1B vectors, 10k QPS, p99 < 30ms). Index choice (HNSW [graph-based ANN index] vs IVF [inverted-file cluster index]). Sharding. Hot-key handling.',
             verify: 'Page filled; rehearsed in 25 min',
             hours: '2.5h',
           },
@@ -2215,7 +2218,7 @@ export const PATH: Phase[] = [
             track: 'read',
             title: 'Public writeups — Anthropic / Together / OpenAI inference interview accounts',
             body: 'Levels.fyi, Glassdoor, Reddit r/MachineLearning interview threads. Note common questions.',
-            verify: 'docs/interview-questions.md with 10 likely questions per target company tier',
+            verify: 'north-portfolio/docs/interview-questions.md with 10 likely questions per target company tier',
             hours: '2h',
           },
           {
@@ -2223,7 +2226,7 @@ export const PATH: Phase[] = [
             track: 'build',
             title: 'Mock 1 — ML systems (the booked W8 slot)',
             body: 'Lead with one of your SD pages. Take notes during. Right after, write a postmortem.',
-            verify: 'Mock completed; docs/mock-1.md postmortem committed within 24h',
+            verify: 'Mock completed; north-portfolio/docs/mock-1.md postmortem committed within 24h',
             hours: '2h',
           },
           {
@@ -2231,7 +2234,7 @@ export const PATH: Phase[] = [
             track: 'build',
             title: 'Mock 2 — DSA (Pramp or interviewing.io)',
             body: 'One medium + one hard. 60 min total. Get feedback on communication, not just correctness.',
-            verify: 'Mock completed; postmortem committed',
+            verify: 'Mock completed; north-portfolio/docs/mock-2.md postmortem committed',
             hours: '2h',
           },
           {
@@ -2239,7 +2242,7 @@ export const PATH: Phase[] = [
             track: 'build',
             title: 'Mock 3 — behavioral with a peer',
             body: 'Six STAR stories (from W5). Have the peer interrupt with follow-ups. Time each story (< 90s).',
-            verify: 'Mock completed; postmortem committed',
+            verify: 'Mock completed; north-portfolio/docs/mock-3.md postmortem committed',
             hours: '1.5h',
           },
           {
@@ -2248,7 +2251,7 @@ export const PATH: Phase[] = [
             title: 'Outreach surge — push to 20 active threads',
             body:
               'You should already have 15+ from W4/W6/W9. Add 5 more, then follow up everyone who has not replied. Recruiter cold-outreach: also acceptable now that portfolio is dense.',
-            verify: 'docs/outreach.md shows 20 active threads (sent ≤ 14 days ago)',
+            verify: 'north-portfolio/docs/outreach.md shows 20 active threads (sent ≤ 14 days ago)',
             hours: '3h',
           },
           {
@@ -2274,7 +2277,7 @@ export const PATH: Phase[] = [
             title: 'Compensation prep',
             body:
               'Pull levels.fyi data for target tiers. Write your floor + target + ceiling numbers down. Practice saying the target number out loud — without softening it.',
-            verify: 'docs/comp.md with three numbers per tier; practice rehearsal logged',
+            verify: 'north-portfolio/docs/comp.md with three numbers per tier; practice rehearsal logged',
             hours: '1.5h',
           },
         ],
@@ -2334,7 +2337,7 @@ export const PATH: Phase[] = [
             track: 'apply',
             title: 'Convert active onsites',
             body:
-              'Any onsite this week: lead with mini-vllm SD walkthrough. Use the W11 SD pages. Take notes from each loop; share thank-you within 24h.',
+              'Any onsite this week: lead with mini-vllm SD (system-design) walkthrough. Use the W11 SD pages. Take notes from each loop; share thank-you within 24h.',
             verify: 'All scheduled onsites attended; thank-yous sent within 24h',
             hours: '8h',
           },
@@ -2352,7 +2355,7 @@ export const PATH: Phase[] = [
             title: 'Offer comparison + negotiation',
             body:
               'Any offer that lands this week: do not accept on the spot. Sit on it 48h, run the negotiation playbook (counter on comp, not benefits, anchor with target competing offer if you have one).',
-            verify: 'docs/offers.md with each offer + the counter you sent + final number',
+            verify: 'north-portfolio/docs/offers.md (umbrella repo) with each offer + the counter you sent + final number',
             hours: 'as needed',
           },
           {
@@ -2361,7 +2364,7 @@ export const PATH: Phase[] = [
             title: 'Sprint retrospective',
             body:
               'What landed (numbers). What did not. What you would do differently if you re-ran W0 with this hindsight. This is the artifact you re-read every six months for the rest of your career.',
-            verify: 'docs/retro.md committed; honest, specific, no fluff',
+            verify: 'north-portfolio/docs/retro.md (umbrella repo) committed; honest, specific, no fluff',
             hours: '2h',
           },
           {
@@ -2371,7 +2374,7 @@ export const PATH: Phase[] = [
             body:
               'You either have an offer (now month 1 of new role: 90-day plan for ramping). Or you do not (now month 4 of search: which assumptions failed, what changes). Either way: a written plan beats default-mode coasting.\n' +
               'DSA NOTE: this sprint deliberately under-prepares DSA (~40 mediums total, ~22h) because Tier A/B target companies value portfolio over Leetcode. IF month 4+ surfaces Tier C interest (frontier-lab phone screens — OpenAI/Anthropic/DeepMind), schedule a 2-week DSA surge BEFORE onsite: ~50 more mediums, ~10 hards, 2 mock interviews/wk. Tier C onsites assume 200-300 problems; cramming after a phone screen is the realistic path.',
-            verify: 'docs/next-90.md committed; if applicable, DSA-surge plan documented as a contingency block',
+            verify: 'north-portfolio/docs/next-90.md (umbrella repo) committed; if applicable, DSA-surge plan documented as a contingency block',
             hours: '1.5h',
           },
           {
@@ -2387,7 +2390,7 @@ export const PATH: Phase[] = [
               '  • Capstones: GRPO trainer with your mini-vllm as rollout engine; reproduce R1-Zero on a 1B model; agentic RL loop end-to-end.\n\n' +
               'Concrete first steps after the W12 retro: (1) read DeepSeek-R1 paper end-to-end; (2) clone verl + OpenRLHF + TRL, build all three; (3) start the rl-foundations track at /training/rl-foundations/mdp-bellman. Once at your new inference role, volunteer for any rollout/post-training work — that is the internal pivot path. Anthropic Fellows applications stay open year-round; re-apply each cycle if first attempt was rejected.\n\n' +
               'This is the durable hook from North into Atlas Year-1. North got you paid; Atlas-RL is where you compound.',
-            verify: 'docs/next-90.md has a "RL transition" section linking to the four training-track modules; DeepSeek-R1 paper read; verl + OpenRLHF + TRL cloned and built.',
+            verify: 'north-portfolio/docs/next-90.md (umbrella repo) has a "RL transition" section linking to the four training-track modules; DeepSeek-R1 paper read; verl + OpenRLHF + TRL cloned and built.',
             hours: '2h',
             resources: [R.mosaic_applied],
           },
