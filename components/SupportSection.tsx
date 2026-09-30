@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 
 const HANDLES = {
-  github: 'jvoltci',
+  github: 'lognjais',
   paypalEmail: 'sonoojai@gmail.com',
-  githubSponsor: 'jvoltci',
+  githubSponsor: 'lognjais',
 }
 
 const COUNTER_NAMESPACE = 'jvoltci-mosaic'
